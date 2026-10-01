@@ -1,0 +1,3632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diskball Championship</title>
+  <meta name="description" content="A retro skeuomorphic HTML5 canvas Diskball game with physical paddles, 5 sequential levels, center obstacles, flip-clock scoreboard, and a brass audio control dock.">
+  <meta property="og:title" content="Diskball Championship">
+  <meta property="og:description" content="A retro skeuomorphic HTML5 canvas Diskball game with physical paddles, 5 sequential levels, center obstacles, flip-clock scoreboard, and a brass audio control dock.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!-- Google Fonts for Skeuomorphic Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800;900&family=Outfit:wght@400;500;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --wood-outer: #180904;
+      --wood-rim: #3d170a;
+      --wood-light: #5e2612;
+      --wood-grain: #270f07;
+      --felt-bg: #0d1b2a;
+      --felt-grid: rgba(255, 255, 255, 0.04);
+      --brass-shine: #fff3be;
+      --brass-light: #e5be53;
+      --brass-mid: #b88d22;
+      --brass-dark: #634708;
+      --brass-border: #443005;
+      --chrome-light: #ffffff;
+      --chrome-mid: #bcc4cc;
+      --chrome-dark: #58616a;
+      --led-green: #22c55e;
+      --led-amber: #f59e0b;
+      --led-red: #ef4444;
+      --font-display: 'Cinzel', serif;
+      --font-body: 'Outfit', sans-serif;
+      --font-mono: 'Share Tech Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      background: radial-gradient(circle at center, #1e242d 0%, #0d1015 70%, #050608 100%);
+      font-family: var(--font-body);
+      color: #e2e8f0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    /* Subtle background felt / tabletop ambient texture */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: 
+        radial-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 0),
+        linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.8));
+      background-size: 24px 24px, 100% 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    #app-container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 1100px;
+      padding: 10px 16px 85px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+    }
+
+    /* ========================================================
+       SKEUOMORPHIC SCREWS & HARDWARE
+    ======================================================== */
+    .screw {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #fff1b8, #b88d22 65%, #423007 100%);
+      box-shadow: 
+        inset 0 1px 1px rgba(255,255,255,0.7),
+        0 2px 4px rgba(0,0,0,0.7);
+      position: relative;
+      display: inline-block;
+    }
+    .screw::after {
+      content: "";
+      position: absolute;
+      top: 5px;
+      left: 2px;
+      width: 8px;
+      height: 2px;
+      background: #2b1f04;
+      transform: rotate(38deg);
+      border-radius: 1px;
+    }
+
+    /* ========================================================
+       TOP HEADER & MECHANICAL FLIP SCOREBOARD
+    ======================================================== */
+    .header-bar {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 14px;
+      background: linear-gradient(180deg, #2b170c 0%, #170a04 100%);
+      border: 2px solid #5a2c16;
+      border-radius: 12px;
+      box-shadow: 
+        0 6px 18px rgba(0,0,0,0.7),
+        inset 0 1px 1px rgba(255,255,255,0.2),
+        inset 0 -1px 2px rgba(0,0,0,0.9);
+    }
+
+    .brand-plate {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 12px;
+      background: linear-gradient(135deg, #f7df8f 0%, #ba8e26 50%, #684c0a 100%);
+      border-radius: 6px;
+      box-shadow: 
+        inset 0 1px 2px rgba(255,255,255,0.8),
+        0 2px 4px rgba(0,0,0,0.6);
+      border: 1px solid #ffea9f;
+    }
+    .brand-plate-text {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      color: #382604;
+      text-shadow: 0 1px 0 rgba(255,255,255,0.5);
+    }
+
+    /* Mechanical Scoreboard Chassis */
+    .scoreboard-housing {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: linear-gradient(180deg, #111419 0%, #08090c 100%);
+      padding: 6px 20px;
+      border-radius: 10px;
+      border: 2px solid #333d49;
+      box-shadow: 
+        inset 0 2px 6px rgba(0,0,0,0.9),
+        0 2px 5px rgba(255,255,255,0.05);
+      position: relative;
+    }
+    .scoreboard-housing::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 45%;
+      background: linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 100%);
+      border-radius: 8px 8px 0 0;
+      pointer-events: none;
+    }
+
+    .score-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+    .score-label {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    .score-label.ai { color: #60a5fa; }
+    .score-label.player { color: #f87171; }
+
+    .flip-digit-card {
+      position: relative;
+      width: 44px;
+      height: 48px;
+      background: linear-gradient(180deg, #1e2229 0%, #13161c 100%);
+      border-radius: 6px;
+      border: 1px solid #3d4552;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 32px;
+      font-weight: 900;
+      color: #fff;
+      box-shadow: 
+        inset 0 1px 1px rgba(255,255,255,0.3),
+        0 4px 8px rgba(0,0,0,0.8);
+      overflow: hidden;
+    }
+    /* Horizontal flip divider */
+    .flip-digit-card::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: #090a0d;
+      box-shadow: 0 1px 1px rgba(255,255,255,0.15);
+      z-index: 2;
+    }
+    .flip-digit-card.ai { color: #93c5fd; text-shadow: 0 0 10px rgba(96,165,250,0.6); }
+    .flip-digit-card.player { color: #fca5a5; text-shadow: 0 0 10px rgba(248,113,113,0.6); }
+
+    .score-separator {
+      font-family: var(--font-mono);
+      font-size: 24px;
+      font-weight: 900;
+      color: #64748b;
+    }
+
+    .level-meta-badge {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #14171d;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid #2a313d;
+    }
+    .level-meta-title {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #94a3b8;
+    }
+    .level-meta-val {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 800;
+      color: #e5be53;
+    }
+
+    /* ========================================================
+       SKEUOMORPHIC BUTTONS
+    ======================================================== */
+    .skeuo-btn {
+      position: relative;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: var(--font-body);
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 0.5px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+      transition: all 0.08s ease;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    /* Brass / Gold Button */
+    .btn-brass {
+      background: linear-gradient(180deg, #fae9a4 0%, #d4a52e 50%, #997115 100%);
+      color: #271a02;
+      border: 1px solid #ffefab;
+      box-shadow: 
+        0 4px 0 #573f08,
+        0 7px 14px rgba(0,0,0,0.6),
+        inset 0 1px 1px rgba(255,255,255,0.9),
+        inset 0 -1px 2px rgba(0,0,0,0.4);
+      text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+    }
+    .btn-brass:hover {
+      background: linear-gradient(180deg, #fff2ba 0%, #e0b43d 50%, #a87e1a 100%);
+    }
+    .btn-brass:active {
+      transform: translateY(3px);
+      box-shadow: 
+        0 1px 0 #573f08,
+        0 3px 6px rgba(0,0,0,0.6),
+        inset 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    /* Chrome / Steel Button */
+    .btn-chrome {
+      background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 50%, #64748b 100%);
+      color: #0f172a;
+      border: 1px solid #f1f5f9;
+      box-shadow: 
+        0 4px 0 #334155,
+        0 7px 14px rgba(0,0,0,0.6),
+        inset 0 1px 1px rgba(255,255,255,0.9),
+        inset 0 -1px 2px rgba(0,0,0,0.3);
+      text-shadow: 0 1px 0 rgba(255,255,255,0.7);
+    }
+    .btn-chrome:hover {
+      background: linear-gradient(180deg, #ffffff 0%, #e2e8f0 50%, #94a3b8 100%);
+    }
+    .btn-chrome:active {
+      transform: translateY(3px);
+      box-shadow: 
+        0 1px 0 #334155,
+        0 3px 6px rgba(0,0,0,0.6),
+        inset 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    /* Crimson / Danger Button */
+    .btn-crimson {
+      background: linear-gradient(180deg, #fca5a5 0%, #dc2626 50%, #991b1b 100%);
+      color: #fff;
+      border: 1px solid #fecaca;
+      box-shadow: 
+        0 4px 0 #5c0f0f,
+        0 7px 14px rgba(0,0,0,0.6),
+        inset 0 1px 1px rgba(255,255,255,0.6),
+        inset 0 -1px 2px rgba(0,0,0,0.5);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    }
+    .btn-crimson:hover {
+      background: linear-gradient(180deg, #fecaca 0%, #ef4444 50%, #b91c1c 100%);
+    }
+    .btn-crimson:active {
+      transform: translateY(3px);
+      box-shadow: 
+        0 1px 0 #5c0f0f,
+        0 3px 6px rgba(0,0,0,0.6),
+        inset 0 2px 4px rgba(0,0,0,0.6);
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+      border-radius: 6px;
+    }
+
+    /* ========================================================
+       MAHOGANY AIR-HOCKEY TABLE & CANVAS FRAME
+    ======================================================== */
+    .table-wood-frame {
+      position: relative;
+      width: 100%;
+      background: 
+        linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 40%),
+        linear-gradient(180deg, #441a0b 0%, #240d05 50%, #150602 100%);
+      padding: 16px;
+      border-radius: 20px;
+      border: 3px solid #6b2e15;
+      box-shadow: 
+        0 14px 38px rgba(0, 0, 0, 0.9),
+        0 3px 8px rgba(0,0,0,0.8),
+        inset 0 2px 3px rgba(255, 235, 200, 0.35),
+        inset 0 -3px 5px rgba(0, 0, 0, 0.95);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Metallic Inner Beveled Lip */
+    .table-inner-lip {
+      position: relative;
+      width: 100%;
+      background: linear-gradient(180deg, #6c7885 0%, #303740 50%, #1a1e24 100%);
+      padding: 8px;
+      border-radius: 14px;
+      border: 2px solid #94a3b8;
+      box-shadow: 
+        inset 0 3px 6px rgba(0,0,0,0.9),
+        0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    /* Corner brass brackets */
+    .corner-bracket {
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #fbe69b 0%, #be9229 50%, #573f08 100%);
+      border: 1px solid #fff5c0;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+      transition: all 0.3s ease;
+    }
+    .bracket-tl { top: 6px; left: 6px; border-radius: 8px 2px 2px 2px; }
+    .bracket-tr { top: 6px; right: 6px; border-radius: 2px 8px 2px 2px; }
+    .bracket-bl { bottom: 6px; left: 6px; border-radius: 2px 2px 2px 8px; }
+    .bracket-br { bottom: 6px; right: 6px; border-radius: 2px 2px 8px 2px; }
+
+    /* Playground Frame Theme Variants */
+    .table-wood-frame.theme-cyber {
+      background: linear-gradient(180deg, #0d131f 0%, #060910 50%, #020408 100%);
+      border-color: #00f0ff;
+      box-shadow: 0 14px 38px rgba(0, 0, 0, 0.95), 0 0 20px rgba(0, 240, 255, 0.3), inset 0 2px 3px rgba(0, 240, 255, 0.4);
+    }
+    .table-wood-frame.theme-cyber .corner-bracket {
+      background: linear-gradient(135deg, #80f7ff 0%, #00f0ff 50%, #005f73 100%);
+      border-color: #d0fbff;
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+    }
+    .table-wood-frame.theme-mahogany {
+      background: linear-gradient(180deg, #53220e 0%, #2f1207 50%, #170702 100%);
+      border-color: #8c3e1b;
+      box-shadow: 0 14px 38px rgba(0, 0, 0, 0.95), inset 0 2px 3px rgba(255, 220, 170, 0.4);
+    }
+    .table-wood-frame.theme-steel {
+      background: linear-gradient(180deg, #374151 0%, #1f2937 50%, #111827 100%);
+      border-color: #6b7280;
+      box-shadow: 0 14px 38px rgba(0, 0, 0, 0.95), inset 0 2px 3px rgba(255, 255, 255, 0.4);
+    }
+    .table-wood-frame.theme-steel .corner-bracket {
+      background: linear-gradient(135deg, #ffffff 0%, #9ca3af 50%, #4b5563 100%);
+      border-color: #f3f4f6;
+    }
+    .table-wood-frame.theme-emerald {
+      background: linear-gradient(180deg, #09331e 0%, #052013 50%, #02120a 100%);
+      border-color: #10b981;
+      box-shadow: 0 14px 38px rgba(0, 0, 0, 0.95), 0 0 20px rgba(16, 185, 129, 0.25), inset 0 2px 3px rgba(167, 243, 208, 0.4);
+    }
+    .table-wood-frame.theme-carbon {
+      background: linear-gradient(180deg, #1f242d 0%, #111419 50%, #0a0c0f 100%);
+      border-color: #ef4444;
+      box-shadow: 0 14px 38px rgba(0, 0, 0, 0.95), 0 0 15px rgba(239, 68, 68, 0.25), inset 0 2px 3px rgba(252, 165, 165, 0.3);
+    }
+    .table-wood-frame.theme-carbon .corner-bracket {
+      background: linear-gradient(135deg, #fca5a5 0%, #ef4444 50%, #991b1b 100%);
+      border-color: #fee2e2;
+    }
+
+    /* Playground Quick Switcher Bar (above canvas) */
+    .playground-quick-bar {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+      padding: 4px 10px;
+      background: rgba(0, 0, 0, 0.45);
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      overflow-x: auto;
+    }
+    .quick-bar-label {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: #94a3b8;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .quick-bar-pills {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+    }
+    .theme-pill {
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      border: 1px solid #3d4655;
+      background: #151a23;
+      color: #94a3b8;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+      outline: none;
+    }
+    .theme-pill:hover {
+      color: #fff;
+      border-color: #ffd978;
+      background: #1f2735;
+    }
+    .theme-pill.active {
+      background: linear-gradient(180deg, #fae9a4 0%, #c59b27 100%);
+      color: #271a02;
+      border-color: #ffeaa2;
+      box-shadow: 0 0 10px rgba(229, 190, 83, 0.5);
+      font-weight: 800;
+    }
+
+    /* Theme Select Modal Grid & Cards */
+    .theme-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin: 18px 0;
+    }
+    .theme-card {
+      background: linear-gradient(180deg, #1b2029 0%, #0f1217 100%);
+      border: 2px solid #333d4b;
+      border-radius: 12px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+    }
+    .theme-card:hover {
+      border-color: #ffd978;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.8), 0 0 12px rgba(229, 190, 83, 0.25);
+    }
+    .theme-card.active {
+      border-color: #ffd978;
+      background: linear-gradient(180deg, #2a2214 0%, #161209 100%);
+      box-shadow: 0 0 16px rgba(229, 190, 83, 0.4), inset 0 1px 1px rgba(255,255,255,0.2);
+    }
+    .theme-preview-box {
+      width: 100%;
+      height: 60px;
+      border-radius: 6px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: inset 0 0 12px rgba(0,0,0,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .theme-card-tag {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      font-size: 8px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(0,0,0,0.6);
+      color: #ffd978;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .theme-card-title {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: #ffd978;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .theme-card-desc {
+      font-size: 11px;
+      color: #94a3b8;
+      line-height: 1.4;
+      flex: 1;
+    }
+    .theme-status-badge {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 4px;
+      text-align: center;
+      text-transform: uppercase;
+      background: #141820;
+      color: #64748b;
+      border: 1px solid #27303d;
+    }
+    .theme-card.active .theme-status-badge {
+      background: #22c55e;
+      color: #052e16;
+      border-color: #86efac;
+      box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+    }
+
+    /* Canvas playfield */
+    #gameCanvas {
+      display: block;
+      width: 100%;
+      aspect-ratio: 800 / 500;
+      max-height: calc(100vh - 210px);
+      background: #0a111a;
+      border-radius: 8px;
+      cursor: crosshair;
+      box-shadow: 
+        inset 0 0 25px rgba(0, 0, 0, 0.95),
+        inset 0 4px 10px rgba(0,0,0,0.8);
+    }
+
+    /* Goal celebration banner overlay inside canvas container */
+    .canvas-overlay-message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.9);
+      background: linear-gradient(180deg, rgba(23, 15, 8, 0.95) 0%, rgba(10, 6, 3, 0.98) 100%);
+      border: 3px solid #e5be53;
+      padding: 16px 36px;
+      border-radius: 12px;
+      box-shadow: 
+        0 10px 30px rgba(0,0,0,0.9),
+        0 0 25px rgba(229, 190, 83, 0.4);
+      text-align: center;
+      pointer-events: none;
+      opacity: 0;
+      transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 10;
+    }
+    .canvas-overlay-message.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    .canvas-overlay-title {
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.8);
+    }
+    .canvas-overlay-sub {
+      font-size: 13px;
+      color: #f1f5f9;
+      margin-top: 4px;
+      letter-spacing: 1px;
+    }
+
+    /* ========================================================
+       MODALS & OVERLAYS (SKEUOMORPHIC STYLING)
+    ======================================================== */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.78);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      padding: 16px;
+    }
+    .modal-backdrop.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .skeuo-modal {
+      width: 100%;
+      max-width: 520px;
+      background: 
+        linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 40%),
+        linear-gradient(180deg, #2d140a 0%, #190904 100%);
+      border: 3px solid #7c3418;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 
+        0 20px 50px rgba(0, 0, 0, 0.95),
+        inset 0 1px 2px rgba(255,255,255,0.3),
+        inset 0 -2px 4px rgba(0,0,0,0.9);
+      position: relative;
+      transform: translateY(20px) scale(0.97);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .modal-backdrop.active .skeuo-modal {
+      transform: translateY(0) scale(1);
+    }
+
+    .modal-header-ribbon {
+      text-align: center;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #54220e;
+      position: relative;
+    }
+    .modal-title {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      color: #ffd978;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    }
+    .modal-desc {
+      font-size: 13px;
+      color: #cbd5e1;
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    /* Level Select Grid */
+    .level-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+      gap: 12px;
+      margin: 18px 0;
+    }
+    .level-card {
+      background: linear-gradient(180deg, #202630 0%, #12151b 100%);
+      border: 2px solid #3b4657;
+      border-radius: 10px;
+      padding: 12px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.15s ease;
+      box-shadow: inset 0 1px 1px rgba(255,255,255,0.1), 0 4px 8px rgba(0,0,0,0.5);
+    }
+    .level-card:not(.locked):hover {
+      border-color: #f7df8f;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.7), 0 0 12px rgba(247,223,143,0.3);
+    }
+    .level-card.locked {
+      opacity: 0.55;
+      cursor: not-allowed;
+      border-color: #262b33;
+      filter: grayscale(0.8);
+    }
+    .level-number {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 900;
+      color: #ffd978;
+    }
+    .level-name {
+      font-size: 11px;
+      font-weight: 700;
+      text-align: center;
+      color: #e2e8f0;
+      letter-spacing: 0.5px;
+    }
+    .level-badge {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #0f1217;
+      color: #94a3b8;
+      border: 1px solid #2f3744;
+    }
+    .level-high-score {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #38bdf8;
+      margin-top: 2px;
+    }
+
+    /* Key-Value readout rows in modals */
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background: #14171d;
+      border-radius: 6px;
+      border: 1px solid #27303d;
+      margin-bottom: 8px;
+    }
+    .stat-label {
+      font-size: 13px;
+      color: #94a3b8;
+    }
+    .stat-val {
+      font-family: var(--font-mono);
+      font-size: 15px;
+      font-weight: 800;
+      color: #ffd978;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    /* ========================================================
+       SPLASH SCREEN (BRANDING: "Game developed by Sayon")
+    ======================================================== */
+    #splash-screen {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, #271207 0%, #110602 60%, #050201 100%);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s;
+    }
+    #splash-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .splash-emblem {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #fff1b8, #ba8e26 65%, #423007 100%);
+      border: 3px solid #ffe99b;
+      box-shadow: 
+        0 10px 30px rgba(0,0,0,0.9),
+        0 0 40px rgba(229,190,83,0.4),
+        inset 0 2px 4px rgba(255,255,255,0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      animation: pulseGlow 2.5s infinite alternate ease-in-out;
+    }
+    .splash-emblem-disc {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #ffffff, #94a3b8 70%, #334155 100%);
+      box-shadow: inset 0 2px 4px rgba(255,255,255,0.9), 0 3px 6px rgba(0,0,0,0.8);
+      position: relative;
+    }
+    .splash-emblem-disc::after {
+      content: "";
+      position: absolute;
+      inset: 16px;
+      border-radius: 50%;
+      background: #1e293b;
+      border: 2px solid #e2e8f0;
+    }
+
+    @keyframes pulseGlow {
+      0% { box-shadow: 0 10px 30px rgba(0,0,0,0.9), 0 0 20px rgba(229,190,83,0.3); transform: scale(1); }
+      100% { box-shadow: 0 10px 30px rgba(0,0,0,0.9), 0 0 50px rgba(229,190,83,0.7); transform: scale(1.05); }
+    }
+
+    .splash-game-title {
+      font-family: var(--font-display);
+      font-size: 38px;
+      font-weight: 900;
+      letter-spacing: 4px;
+      color: #ffd978;
+      text-align: center;
+      text-transform: uppercase;
+      text-shadow: 
+        0 2px 0 #543f0c,
+        0 6px 20px rgba(0,0,0,0.9);
+      margin-bottom: 8px;
+    }
+
+    /* REQUIRED BRANDING TEXT HIGHLIGHT */
+    .sayon-branding-card {
+      margin: 16px 0 28px 0;
+      background: linear-gradient(135deg, #fce99f 0%, #c99c2b 50%, #6f4f09 100%);
+      padding: 8px 24px;
+      border-radius: 30px;
+      border: 2px solid #fff5c0;
+      box-shadow: 
+        0 8px 24px rgba(0,0,0,0.8),
+        inset 0 1px 2px rgba(255,255,255,0.9),
+        0 0 25px rgba(229, 190, 83, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+    /* Metallic shimmer sweep */
+    .sayon-branding-card::after {
+      content: "";
+      position: absolute;
+      top: -50%;
+      left: -60%;
+      width: 40%;
+      height: 200%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+      transform: rotate(25deg);
+      animation: metallicShine 3s infinite;
+    }
+    @keyframes metallicShine {
+      0% { left: -60%; }
+      30% { left: 140%; }
+      100% { left: 140%; }
+    }
+
+    .sayon-branding-text {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      color: #2b1d03;
+      text-shadow: 0 1px 0 rgba(255,255,255,0.7);
+      text-transform: uppercase;
+      display: block;
+    }
+
+    .splash-subtitle {
+      font-size: 13px;
+      letter-spacing: 2px;
+      color: #94a3b8;
+      text-transform: uppercase;
+      margin-bottom: 30px;
+    }
+
+    /* ========================================================
+       AUDIO CONTROL STATION (BOTTOM DOCKED RACK UNIT)
+    ======================================================== */
+    .audio-rack-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 64px;
+      background: 
+        linear-gradient(180deg, #3d2212 0%, #201007 35%, #140904 100%);
+      border-top: 2px solid #7c3b1e;
+      box-shadow: 
+        0 -8px 25px rgba(0,0,0,0.9),
+        inset 0 1px 1px rgba(255,235,180,0.3);
+      z-index: 40;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 16px;
+    }
+
+    .rack-inner {
+      width: 100%;
+      max-width: 1100px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    /* Left rack segment: Rack Screw + Branding Plate + LED */
+    .rack-branding {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .rack-title {
+      font-family: var(--font-display);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      color: #ffd978;
+      text-shadow: 0 1px 0 rgba(0,0,0,0.8);
+      white-space: nowrap;
+    }
+    .led-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #334155;
+      border: 1px solid #0f172a;
+      transition: all 0.2s ease;
+      box-shadow: inset 0 1px 1px rgba(0,0,0,0.7);
+    }
+    .led-indicator.active {
+      background: var(--led-green);
+      box-shadow: 0 0 8px var(--led-green), inset 0 1px 1px rgba(255,255,255,0.8);
+    }
+    .led-indicator.paused {
+      background: var(--led-amber);
+      box-shadow: 0 0 8px var(--led-amber), inset 0 1px 1px rgba(255,255,255,0.8);
+    }
+
+    /* Middle rack segment: Play/Pause, Track Selector */
+    .rack-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      justify-content: center;
+      max-width: 600px;
+    }
+
+    .track-select-housing {
+      display: flex;
+      align-items: center;
+      background: #0f131a;
+      border: 1px solid #3c4656;
+      border-radius: 6px;
+      padding: 2px 8px;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.8);
+      min-width: 220px;
+      flex: 1;
+      max-width: 320px;
+    }
+    .track-dropdown {
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: #ffd978;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      outline: none;
+      cursor: pointer;
+      padding: 4px 0;
+    }
+    .track-dropdown option {
+      background: #141922;
+      color: #e2e8f0;
+      font-family: var(--font-mono);
+    }
+
+    /* Right rack segment: Volume Slider & Mute */
+    .rack-volume-unit {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .volume-slider-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #0d1017;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid #2e3644;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.8);
+    }
+    .vol-slider {
+      -webkit-appearance: none;
+      width: 85px;
+      height: 6px;
+      border-radius: 3px;
+      background: #252e3d;
+      outline: none;
+      cursor: pointer;
+    }
+    .vol-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #fff1b8, #b88d22 70%, #423007);
+      border: 1px solid #ffe99b;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.8);
+      cursor: pointer;
+    }
+    .vol-slider::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #fff1b8, #b88d22 70%, #423007);
+      border: 1px solid #ffe99b;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.8);
+      cursor: pointer;
+    }
+    .vol-percent-badge {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: #ffd978;
+      min-width: 32px;
+      text-align: right;
+    }
+
+    /* Small responsive tweaks */
+    @media (max-width: 768px) {
+      .rack-title { display: none; }
+      .header-bar { flex-wrap: wrap; justify-content: center; gap: 8px; }
+      .brand-plate { display: none; }
+      .audio-rack-bar { height: auto; padding: 6px 12px; }
+      .rack-inner { flex-wrap: wrap; justify-content: center; }
+      .track-select-housing { min-width: 160px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========================================================
+       1. SPLASH SCREEN ("Game developed by Sayon")
+  ======================================================== -->
+  <div id="splash-screen">
+    <div class="splash-emblem">
+      <div class="splash-emblem-disc"></div>
+    </div>
+    <h1 class="splash-game-title">Diskball Championship</h1>
+    
+    <!-- Required Branding -->
+    <div class="sayon-branding-card">
+      <span class="sayon-branding-text">Game developed by Sayon</span>
+    </div>
+
+    <div class="splash-subtitle">Air Hockey Classic • Skeuomorphic Arcade</div>
+
+    <button id="btn-enter-splash" class="skeuo-btn btn-brass" style="font-size: 16px; padding: 14px 36px;">
+      ▶ Enter Game
+    </button>
+  </div>
+
+  <!-- ========================================================
+       2. MAIN APP CONTAINER
+  ======================================================== -->
+  <div id="app-container">
+
+    <!-- Top Header Bar with Scoreboard & Nav -->
+    <header class="header-bar">
+      <!-- Left Branding / Menu trigger -->
+      <div class="brand-plate">
+        <span class="screw"></span>
+        <span class="brand-plate-text">SAYON ARCADE</span>
+        <span class="screw"></span>
+      </div>
+
+      <!-- Center Mechanical Flip Scoreboard -->
+      <div class="scoreboard-housing">
+        <div class="score-block">
+          <span class="score-label ai">Opponent</span>
+          <div id="score-ai-card" class="flip-digit-card ai">0</div>
+        </div>
+
+        <div class="score-separator">:</div>
+
+        <div class="score-block">
+          <span class="score-label player">Player</span>
+          <div id="score-player-card" class="flip-digit-card player">0</div>
+        </div>
+
+        <div class="level-meta-badge">
+          <span class="level-meta-title">TARGET</span>
+          <span id="target-score-display" class="level-meta-val">FIRST TO 5</span>
+        </div>
+      </div>
+
+      <!-- Quick Action Buttons -->
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <button id="btn-theme-trigger" class="skeuo-btn btn-brass btn-sm" title="Choose Playground Arena Surface">
+          🎨 <span id="header-theme-name">Midnight Ice</span>
+        </button>
+        <button id="btn-menu-trigger" class="skeuo-btn btn-chrome btn-sm">
+          ☰ Menu
+        </button>
+        <button id="btn-pause-trigger" class="skeuo-btn btn-brass btn-sm">
+          ⏸ Pause
+        </button>
+      </div>
+    </header>
+
+    <!-- Air Hockey Mahogany Table Frame & Canvas -->
+    <div id="main-table-frame" class="table-wood-frame">
+      <!-- Brass corner brackets -->
+      <div class="corner-bracket bracket-tl"><span class="screw"></span></div>
+      <div class="corner-bracket bracket-tr"><span class="screw"></span></div>
+      <div class="corner-bracket bracket-bl"><span class="screw"></span></div>
+      <div class="corner-bracket bracket-br"><span class="screw"></span></div>
+
+      <div class="table-inner-lip">
+        <!-- Playground Quick Switcher Strip -->
+        <div class="playground-quick-bar">
+          <span class="quick-bar-label">🎨 PLAYGROUND:</span>
+          <div id="quick-theme-pills" class="quick-bar-pills">
+            <button class="theme-pill active" data-theme="midnight">Midnight Ice</button>
+            <button class="theme-pill" data-theme="cyber">Cyber Neon</button>
+            <button class="theme-pill" data-theme="mahogany">Mahogany Wood</button>
+            <button class="theme-pill" data-theme="steel">Industrial Steel</button>
+            <button class="theme-pill" data-theme="emerald">Casino Velvet</button>
+            <button class="theme-pill" data-theme="carbon">Carbon Stealth</button>
+          </div>
+        </div>
+
+        <!-- Interactive Canvas -->
+        <canvas id="gameCanvas" width="800" height="500"></canvas>
+
+        <!-- Goal / Celebration Overlay inside table -->
+        <div id="canvas-overlay-msg" class="canvas-overlay-message">
+          <div id="canvas-overlay-title" class="canvas-overlay-title">GOAL!</div>
+          <div id="canvas-overlay-sub" class="canvas-overlay-sub">Player scores!</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ========================================================
+       3. AUDIO CONTROL STATION (BOTTOM DOCK)
+  ======================================================== -->
+  <footer class="audio-rack-bar">
+    <div class="rack-inner">
+      <!-- Left: Unit Brand & LED -->
+      <div class="rack-branding">
+        <span class="screw"></span>
+        <div id="audio-led" class="led-indicator active" title="Audio Status"></div>
+        <span class="rack-title">AUDIO STATION MK-IV</span>
+      </div>
+
+      <!-- Center: Transport & Playlist Selector -->
+      <div class="rack-controls">
+        <button id="btn-audio-toggle" class="skeuo-btn btn-brass btn-sm" title="Play or Pause Music">
+          ⏸ PAUSE
+        </button>
+
+        <div class="track-select-housing">
+          <select id="audio-track-selector" class="track-dropdown" title="Select Music Vibe">
+            <option value="0">Trending Reel Vibe 1: Blinding Rhythm</option>
+            <option value="1">Trending Reel Vibe 2: Levitating Beats</option>
+            <option value="2">Trending Reel Vibe 3: As It Was</option>
+            <option value="3">Trending Reel Vibe 4: Epic Funk</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Right: Master Volume & Mute -->
+      <div class="rack-volume-unit">
+        <div class="volume-slider-container">
+          <span style="font-size: 11px; font-weight: 800; color: #94a3b8;">VOL</span>
+          <input type="range" id="volume-slider" class="vol-slider" min="0" max="100" value="70">
+          <span id="vol-percent-text" class="vol-percent-badge">70%</span>
+        </div>
+
+        <button id="btn-audio-mute" class="skeuo-btn btn-chrome btn-sm" title="Mute Audio">
+          🔊
+        </button>
+        <span class="screw"></span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========================================================
+       4. MODALS (MAIN MENU, LEVEL SELECT, HOW TO PLAY, ETC.)
+  ======================================================== -->
+
+  <!-- Modal: Main Menu -->
+  <div id="modal-main-menu" class="modal-backdrop">
+    <div class="skeuo-modal">
+      <div class="modal-header-ribbon">
+        <h2 class="modal-title">DISKBALL ARCADE</h2>
+        <p class="modal-desc">Skeuomorphic Table Championship</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px; margin: 16px 0;">
+        <button id="btn-menu-start" class="skeuo-btn btn-brass" style="width: 100%; padding: 12px;">
+          ▶ START GAME
+        </button>
+        <button id="btn-menu-theme" class="skeuo-btn btn-brass" style="width: 100%; padding: 12px;">
+          🎨 CHANGE PLAYGROUND
+        </button>
+        <button id="btn-menu-levels" class="skeuo-btn btn-chrome" style="width: 100%; padding: 12px;">
+          ★ LEVEL SELECT
+        </button>
+        <button id="btn-menu-help" class="skeuo-btn btn-chrome" style="width: 100%; padding: 12px;">
+          📖 HOW TO PLAY
+        </button>
+        <button id="btn-menu-reset" class="skeuo-btn btn-crimson" style="width: 100%; padding: 12px; font-size: 12px;">
+          ⚠ RESET PROGRESS
+        </button>
+      </div>
+
+      <div style="text-align: center; margin-top: 14px; font-size: 11px; color: #94a3b8;">
+        Game developed by Sayon • Native HTML5 Canvas
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Playground Theme Selector -->
+  <div id="modal-theme-select" class="modal-backdrop">
+    <div class="skeuo-modal" style="max-width: 680px;">
+      <div class="modal-header-ribbon">
+        <h2 class="modal-title">CHOOSE PLAYGROUND</h2>
+        <p class="modal-desc">Select your arena table surface, aesthetic & textures</p>
+      </div>
+
+      <div id="theme-grid-container" class="theme-grid">
+        <!-- Rendered dynamically by JS -->
+      </div>
+
+      <div class="modal-actions">
+        <button id="btn-close-theme" class="skeuo-btn btn-brass" style="min-width: 160px;">
+          ✓ APPLY & PLAY
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Level Select -->
+  <div id="modal-level-select" class="modal-backdrop">
+    <div class="skeuo-modal" style="max-width: 620px;">
+      <div class="modal-header-ribbon">
+        <h2 class="modal-title">SELECT ARENA</h2>
+        <p class="modal-desc">Win matches sequentially to unlock higher stages</p>
+      </div>
+
+      <div id="level-grid-container" class="level-grid">
+        <!-- Injected dynamically by JS -->
+      </div>
+
+      <div class="modal-actions">
+        <button id="btn-close-levels" class="skeuo-btn btn-chrome">
+          Back to Menu
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: How to Play -->
+  <div id="modal-how-to-play" class="modal-backdrop">
+    <div class="skeuo-modal">
+      <div class="modal-header-ribbon">
+        <h2 class="modal-title">HOW TO PLAY</h2>
+        <p class="modal-desc">Air-Hockey & Diskball Rules</p>
+      </div>
+
+      <div style="font-size: 13px; color: #cbd5e1; line-height: 1.6; display: flex; flex-direction: column; gap: 10px;">
+        <div class="stat-row">
+          <span class="stat-label">Controls</span>
+          <span class="stat-val" style="color: #60a5fa;">Mouse / Touch Drag</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Striker (Red)</span>
+          <span class="stat-val" style="color: #f87171;">Right Half Table</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Target (Opponent Net)</span>
+          <span class="stat-val" style="color: #4ade80;">Left Edge Goal</span>
+        </div>
+        
+        <p style="margin-top: 6px;">
+          • Move your red mallet to smash the disk into the opponent's net on the left.
+          <br>• <strong>Level 1:</strong> Wide target, slow opponent.
+          <br>• <strong>Level 2:</strong> Narrow target & faster disk velocity.
+          <br>• <strong>Level 3:</strong> Moving brass center bumpers.
+          <br>• <strong>Level 4:</strong> Dual disk chaos with fast AI!
+          <br>• <strong>Level 5:</strong> Boss Fight with sliding goal & dynamic orbital bumpers!
+        </p>
+      </div>
+
+      <div class="modal-actions">
+        <button id="btn-close-help" class="skeuo-btn btn-brass">
+          Got It!
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Pause Menu -->
+  <div id="modal-pause" class="modal-backdrop">
+    <div class="skeuo-modal">
+      <div class="modal-header-ribbon">
+        <h2 class="modal-title">MATCH PAUSED</h2>
+        <p class="modal-desc">Take a breath, champion</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <button id="btn-pause-resume" class="skeuo-btn btn-brass">
+          ▶ RESUME MATCH
+        </button>
+        <button id="btn-pause-restart" class="skeuo-btn btn-chrome">
+          ↺ RESTART LEVEL
+        </button>
+        <button id="btn-pause-menu" class="skeuo-btn btn-chrome">
+          ☰ MAIN MENU
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Level Victory -->
+  <div id="modal-victory" class="modal-backdrop">
+    <div class="skeuo-modal">
+      <div class="modal-header-ribbon">
+        <h2 class="modal-title" style="color: #4ade80;">VICTORY!</h2>
+        <p id="victory-sub-text" class="modal-desc">You dominated the arena</p>
+      </div>
+
+      <div id="victory-stats-container">
+        <div class="stat-row">
+          <span class="stat-label">Final Score</span>
+          <span id="victory-final-score" class="stat-val">5 - 2</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Match Duration</span>
+          <span id="victory-match-time" class="stat-val">00:45</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">High Score</span>
+          <span id="victory-high-score" class="stat-val">NEW RECORD!</span>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button id="btn-next-level" class="skeuo-btn btn-brass">
+          ★ NEXT LEVEL
+        </button>
+        <button id="btn-replay-level" class="skeuo-btn btn-chrome">
+          ↺ REPLAY
+        </button>
+        <button id="btn-victory-menu" class="skeuo-btn btn-chrome">
+          ☰ MENU
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Defeat / Game Over -->
+  <div id="modal-defeat" class="modal-backdrop">
+    <div class="skeuo-modal">
+      <div class="modal-header-ribbon">
+        <h2 class="modal-title" style="color: #f87171;">DEFEAT</h2>
+        <p class="modal-desc">The opponent outscored your defense!</p>
+      </div>
+
+      <div>
+        <div class="stat-row">
+          <span class="stat-label">Final Score</span>
+          <span id="defeat-final-score" class="stat-val">3 - 5</span>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button id="btn-defeat-retry" class="skeuo-btn btn-crimson">
+          ↺ TRY AGAIN
+        </button>
+        <button id="btn-defeat-menu" class="skeuo-btn btn-chrome">
+          ☰ MAIN MENU
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Reset Progress Confirmation -->
+  <div id="modal-reset-confirm" class="modal-backdrop">
+    <div class="skeuo-modal">
+      <div class="modal-header-ribbon">
+        <h2 class="modal-title" style="color: #f87171;">RESET PROGRESS?</h2>
+        <p class="modal-desc">This will erase all unlocked levels and high scores!</p>
+      </div>
+
+      <div class="modal-actions">
+        <button id="btn-confirm-reset" class="skeuo-btn btn-crimson">
+          YES, RESET ALL
+        </button>
+        <button id="btn-cancel-reset" class="skeuo-btn btn-chrome">
+          CANCEL
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       5. JAVASCRIPT GAME ENGINE, AUDIO SYNTH & LOGIC
+  ======================================================== -->
+  <script>
+  (function() {
+    'use strict';
+
+    /* ========================================================
+       LEVEL CONFIGURATIONS (5 LEVELS)
+    ======================================================== */
+    const LEVEL_CONFIGS = [
+      {
+        level: 1,
+        name: "Rookie Arena",
+        desc: "Slow opponent, wide opponent goal",
+        targetScore: 5,
+        aiSpeed: 4.2,
+        aiAccuracy: 0.65,
+        aiReactionDelay: 12,
+        aiAggression: 0.4,
+        goalHeightAI: 240,
+        goalHeightPlayer: 170,
+        diskCount: 1,
+        diskSpeedMultiplier: 1.0,
+        obstacles: []
+      },
+      {
+        level: 2,
+        name: "Velocity Court",
+        desc: "Faster disk speed & narrower goal",
+        targetScore: 5,
+        aiSpeed: 6.0,
+        aiAccuracy: 0.8,
+        aiReactionDelay: 7,
+        aiAggression: 0.65,
+        goalHeightAI: 155,
+        goalHeightPlayer: 170,
+        diskCount: 1,
+        diskSpeedMultiplier: 1.25,
+        obstacles: []
+      },
+      {
+        level: 3,
+        name: "Center Hazards",
+        desc: "Moving center arena obstacles",
+        targetScore: 5,
+        aiSpeed: 6.6,
+        aiAccuracy: 0.85,
+        aiReactionDelay: 6,
+        aiAggression: 0.75,
+        goalHeightAI: 170,
+        goalHeightPlayer: 170,
+        diskCount: 1,
+        diskSpeedMultiplier: 1.15,
+        obstacles: [
+          { type: 'oscillating', x: 400, y: 150, minY: 90, maxY: 210, speed: 2.2, radius: 22, color: '#e5be53' },
+          { type: 'oscillating', x: 400, y: 350, minY: 290, maxY: 410, speed: -2.2, radius: 22, color: '#e5be53' }
+        ]
+      },
+      {
+        level: 4,
+        name: "Twin Chaos",
+        desc: "Dual disk challenge & fast AI",
+        targetScore: 6,
+        aiSpeed: 7.8,
+        aiAccuracy: 0.9,
+        aiReactionDelay: 4,
+        aiAggression: 0.85,
+        goalHeightAI: 165,
+        goalHeightPlayer: 170,
+        diskCount: 2,
+        diskSpeedMultiplier: 1.2,
+        obstacles: []
+      },
+      {
+        level: 5,
+        name: "The Sovereign",
+        desc: "Final Boss: Moving goal & dynamic orbital bumpers",
+        targetScore: 7,
+        aiSpeed: 9.0,
+        aiAccuracy: 0.95,
+        aiReactionDelay: 2,
+        aiAggression: 0.95,
+        goalHeightAI: 150,
+        goalHeightPlayer: 170,
+        movingGoalAI: true,
+        diskCount: 1,
+        diskSpeedMultiplier: 1.35,
+        obstacles: [
+          { type: 'orbit', centerX: 400, centerY: 250, distance: 90, angle: 0, speed: 0.035, radius: 20, color: '#ef4444' },
+          { type: 'orbit', centerX: 400, centerY: 250, distance: 90, angle: Math.PI, speed: 0.035, radius: 20, color: '#ef4444' }
+        ]
+      }
+    ];
+
+    /* ========================================================
+       PLAYGROUND ARENA BACKGROUND THEMES (MULTIPLE OPTIONS)
+    ======================================================== */
+    const PLAYGROUND_THEMES = [
+      {
+        id: 'midnight',
+        name: 'Midnight Ice',
+        tag: 'Classic Air Hockey',
+        desc: 'Deep navy table felt with micro-perforated air jet grid and tournament neon rings.',
+        frameClass: 'theme-midnight',
+        previewGradient: 'radial-gradient(circle, #1e293b 20%, #090e17 100%)',
+        accentColor: '#38bdf8'
+      },
+      {
+        id: 'cyber',
+        name: 'Cyber Neon',
+        tag: 'Synthwave / Sci-Fi',
+        desc: 'Luminous obsidian arena with electric cyan laser grid & pulsing magenta divide.',
+        frameClass: 'theme-cyber',
+        previewGradient: 'radial-gradient(circle, #091322 20%, #020408 100%)',
+        accentColor: '#00f0ff'
+      },
+      {
+        id: 'mahogany',
+        name: 'Polished Mahogany',
+        tag: 'Vintage Parlor',
+        desc: 'Handcrafted warm hardwood planks with amber lacquer gloss and inlaid brass rings.',
+        frameClass: 'theme-mahogany',
+        previewGradient: 'radial-gradient(circle, #3d1708 20%, #1a0802 100%)',
+        accentColor: '#ffd978'
+      },
+      {
+        id: 'steel',
+        name: 'Industrial Steel',
+        tag: 'Heavy Metal',
+        desc: 'Cold-rolled brushed metal deck with industrial rivet seams and hazard caution stripes.',
+        frameClass: 'theme-steel',
+        previewGradient: 'radial-gradient(circle, #334155 20%, #18202b 100%)',
+        accentColor: '#facc15'
+      },
+      {
+        id: 'emerald',
+        name: 'Casino Velvet',
+        tag: 'Monte Carlo Club',
+        desc: 'Royal dark emerald green baize felt with gilded bullion gold crest and luxury trim.',
+        frameClass: 'theme-emerald',
+        previewGradient: 'radial-gradient(circle, #0a3a20 20%, #03140a 100%)',
+        accentColor: '#4ade80'
+      },
+      {
+        id: 'carbon',
+        name: 'Carbon Stealth',
+        tag: 'Motorsport Pro',
+        desc: 'Matte woven 2x2 carbon fiber twill deck with racing red GT center stripes.',
+        frameClass: 'theme-carbon',
+        previewGradient: 'radial-gradient(circle, #242a35 20%, #0b0d11 100%)',
+        accentColor: '#ef4444'
+      }
+    ];
+
+    /* ========================================================
+       PERSISTENCE (LOCAL STORAGE)
+    ======================================================== */
+    const STORAGE_KEY = 'diskball_save_sayon_v1';
+
+    function loadSavedState() {
+      const defaultState = {
+        unlockedLevel: 1,
+        highScores: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+        audio: { volume: 70, muted: false, currentTrackIndex: 0, isPlaying: true },
+        playgroundTheme: 'midnight'
+      };
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          return { ...defaultState, ...parsed };
+        }
+      } catch (e) {
+        console.warn("Storage load error:", e);
+      }
+      return defaultState;
+    }
+
+    function saveState(state) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {
+        console.warn("Storage save error:", e);
+      }
+    }
+
+    let appState = loadSavedState();
+
+    /* ========================================================
+       WEB AUDIO API SOUND EFFECTS & PROCEDURAL MUSIC SYNTH
+    ======================================================== */
+    let audioCtx = null;
+    let masterGain = null;
+    let sfxGain = null;
+    let musicGain = null;
+    let isAudioInitialized = false;
+
+    function initAudio() {
+      if (isAudioInitialized && audioCtx) return;
+      try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContextClass();
+        masterGain = audioCtx.createGain();
+        sfxGain = audioCtx.createGain();
+        musicGain = audioCtx.createGain();
+
+        sfxGain.connect(masterGain);
+        musicGain.connect(masterGain);
+        masterGain.connect(audioCtx.destination);
+
+        updateAudioVolumes();
+        isAudioInitialized = true;
+        startMusicEngine();
+      } catch (e) {
+        console.warn("AudioContext init error:", e);
+      }
+    }
+
+    function updateAudioVolumes() {
+      if (!masterGain) return;
+      const vol = appState.audio.muted ? 0 : (appState.audio.volume / 100);
+      masterGain.gain.setTargetAtTime(vol, audioCtx.currentTime, 0.05);
+    }
+
+    /* Tactile Sound Effects */
+    function playPaddleHitSound(velocity = 5) {
+      if (!audioCtx || appState.audio.muted) return;
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      const filter = audioCtx.createBiquadFilter();
+
+      const freq = Math.min(600, 220 + velocity * 25);
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, now);
+      osc.frequency.exponentialRampToValueAtTime(80, now + 0.09);
+
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(1200, now);
+
+      gain.gain.setValueAtTime(0.7, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.09);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(sfxGain);
+
+      osc.start(now);
+      osc.stop(now + 0.1);
+    }
+
+    function playWallBounceSound() {
+      if (!audioCtx || appState.audio.muted) return;
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(140, now);
+      osc.frequency.exponentialRampToValueAtTime(60, now + 0.08);
+
+      gain.gain.setValueAtTime(0.5, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+
+      osc.connect(gain);
+      gain.connect(sfxGain);
+
+      osc.start(now);
+      osc.stop(now + 0.08);
+    }
+
+    function playBumperHitSound() {
+      if (!audioCtx || appState.audio.muted) return;
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(640, now);
+      osc.frequency.exponentialRampToValueAtTime(320, now + 0.16);
+
+      gain.gain.setValueAtTime(0.6, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.16);
+
+      osc.connect(gain);
+      gain.connect(sfxGain);
+
+      osc.start(now);
+      osc.stop(now + 0.16);
+    }
+
+    function playGoalHornSound() {
+      if (!audioCtx || appState.audio.muted) return;
+      const now = audioCtx.currentTime;
+      
+      // Stadium horn tone
+      const osc1 = audioCtx.createOscillator();
+      const osc2 = audioCtx.createOscillator();
+      const hornGain = audioCtx.createGain();
+
+      osc1.type = 'sawtooth';
+      osc2.type = 'sawtooth';
+      osc1.frequency.setValueAtTime(220, now);
+      osc2.frequency.setValueAtTime(277.18, now); // C# / harmonized
+
+      hornGain.gain.setValueAtTime(0.4, now);
+      hornGain.gain.exponentialRampToValueAtTime(0.01, now + 0.7);
+
+      osc1.connect(hornGain);
+      osc2.connect(hornGain);
+      hornGain.connect(sfxGain);
+
+      osc1.start(now);
+      osc2.start(now);
+      osc1.stop(now + 0.75);
+      osc2.stop(now + 0.75);
+
+      // Ascending celebratory chimes
+      const arpeggio = [523.25, 659.25, 783.99, 1046.50];
+      arpeggio.forEach((freq, idx) => {
+        const chimeOsc = audioCtx.createOscillator();
+        const chimeGain = audioCtx.createGain();
+        const time = now + 0.15 + (idx * 0.08);
+
+        chimeOsc.type = 'triangle';
+        chimeOsc.frequency.setValueAtTime(freq, time);
+
+        chimeGain.gain.setValueAtTime(0.4, time);
+        chimeGain.gain.exponentialRampToValueAtTime(0.01, time + 0.25);
+
+        chimeOsc.connect(chimeGain);
+        chimeGain.connect(sfxGain);
+
+        chimeOsc.start(time);
+        chimeOsc.stop(time + 0.3);
+      });
+    }
+
+    function playClickSound() {
+      if (!audioCtx || appState.audio.muted) return;
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(800, now);
+      osc.frequency.exponentialRampToValueAtTime(200, now + 0.03);
+
+      gain.gain.setValueAtTime(0.25, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.03);
+
+      osc.connect(gain);
+      gain.connect(sfxGain);
+
+      osc.start(now);
+      osc.stop(now + 0.04);
+    }
+
+    /* ========================================================
+       MUSIC ENGINE: HYBRID (WEB AUDIO SYNTH CHIPTUNE/DISCO + STREAM)
+       Reliable in all browser/iframe sandboxes!
+    ======================================================== */
+    let synthTimer = null;
+    let synthStep = 0;
+
+    const TRACK_PROFILES = [
+      {
+        name: "Trending Reel Vibe 1: Blinding Rhythm",
+        bpm: 130,
+        bassScale: [110, 110, 130.81, 146.83, 110, 164.81, 146.83, 130.81],
+        leadNotes: [440, 0, 523.25, 587.33, 440, 659.25, 587.33, 523.25]
+      },
+      {
+        name: "Trending Reel Vibe 2: Levitating Beats",
+        bpm: 120,
+        bassScale: [98, 98, 110, 123.47, 98, 146.83, 130.81, 110],
+        leadNotes: [392, 440, 0, 493.88, 587.33, 0, 523.25, 440]
+      },
+      {
+        name: "Trending Reel Vibe 3: As It Was",
+        bpm: 140,
+        bassScale: [130.81, 130.81, 146.83, 164.81, 130.81, 174.61, 164.81, 146.83],
+        leadNotes: [523.25, 0, 587.33, 659.25, 0, 698.46, 659.25, 587.33]
+      },
+      {
+        name: "Trending Reel Vibe 4: Epic Funk",
+        bpm: 114,
+        bassScale: [82.41, 0, 98, 110, 82.41, 123.47, 0, 98],
+        leadNotes: [329.63, 392, 0, 440, 493.88, 0, 392, 329.63]
+      }
+    ];
+
+    function startMusicEngine() {
+      if (!audioCtx || !appState.audio.isPlaying || synthTimer) return;
+      scheduleSynthBeat();
+    }
+
+    function stopMusicEngine() {
+      if (synthTimer) {
+        clearTimeout(synthTimer);
+        synthTimer = null;
+      }
+    }
+
+    function scheduleSynthBeat() {
+      if (!appState.audio.isPlaying) return;
+      const track = TRACK_PROFILES[appState.audio.currentTrackIndex] || TRACK_PROFILES[0];
+      const stepDuration = (60 / track.bpm) / 2; // 8th note steps
+
+      playSynthStep(track, synthStep);
+      synthStep = (synthStep + 1) % 16;
+
+      synthTimer = setTimeout(scheduleSynthBeat, stepDuration * 1000);
+    }
+
+    function playSynthStep(track, step) {
+      if (!audioCtx || masterGain.gain.value === 0) return;
+      const now = audioCtx.currentTime;
+
+      // Bass note
+      const bassFreq = track.bassScale[step % track.bassScale.length];
+      if (bassFreq > 0) {
+        const bassOsc = audioCtx.createOscillator();
+        const bassGain = audioCtx.createGain();
+        bassOsc.type = 'sawtooth';
+        bassOsc.frequency.setValueAtTime(bassFreq, now);
+
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(450, now);
+
+        bassGain.gain.setValueAtTime(0.2, now);
+        bassGain.gain.exponentialRampToValueAtTime(0.01, now + 0.22);
+
+        bassOsc.connect(filter);
+        filter.connect(bassGain);
+        bassGain.connect(musicGain);
+
+        bassOsc.start(now);
+        bassOsc.stop(now + 0.24);
+      }
+
+      // Drum Kick on beats 0, 4, 8, 12
+      if (step % 4 === 0) {
+        const kickOsc = audioCtx.createOscillator();
+        const kickGain = audioCtx.createGain();
+        kickOsc.type = 'sine';
+        kickOsc.frequency.setValueAtTime(140, now);
+        kickOsc.frequency.exponentialRampToValueAtTime(45, now + 0.1);
+
+        kickGain.gain.setValueAtTime(0.35, now);
+        kickGain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+
+        kickOsc.connect(kickGain);
+        kickGain.connect(musicGain);
+
+        kickOsc.start(now);
+        kickOsc.stop(now + 0.12);
+      }
+
+      // Snare / Clap on beats 4, 12
+      if (step % 8 === 4) {
+        const snareNoise = audioCtx.createBufferSource();
+        const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.08, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < data.length; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (data.length * 0.3));
+        }
+        snareNoise.buffer = buffer;
+
+        const snareGain = audioCtx.createGain();
+        snareGain.gain.setValueAtTime(0.18, now);
+        snareGain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+
+        snareNoise.connect(snareGain);
+        snareGain.connect(musicGain);
+
+        snareNoise.start(now);
+      }
+
+      // Hi-hat on odd 8th notes
+      if (step % 2 === 1) {
+        const hatNoise = audioCtx.createBufferSource();
+        const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.04, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < data.length; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (data.length * 0.15));
+        }
+        hatNoise.buffer = buffer;
+
+        const hatGain = audioCtx.createGain();
+        hatGain.gain.setValueAtTime(0.08, now);
+        hatGain.gain.exponentialRampToValueAtTime(0.01, now + 0.04);
+
+        hatNoise.connect(hatGain);
+        hatGain.connect(musicGain);
+
+        hatNoise.start(now);
+      }
+
+      // Synth Lead arpeggio on certain steps
+      const leadFreq = track.leadNotes[step % track.leadNotes.length];
+      if (leadFreq > 0) {
+        const leadOsc = audioCtx.createOscillator();
+        const leadGain = audioCtx.createGain();
+        leadOsc.type = 'triangle';
+        leadOsc.frequency.setValueAtTime(leadFreq, now);
+
+        leadGain.gain.setValueAtTime(0.12, now);
+        leadGain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+
+        leadOsc.connect(leadGain);
+        leadGain.connect(musicGain);
+
+        leadOsc.start(now);
+        leadOsc.stop(now + 0.2);
+      }
+    }
+
+    /* ========================================================
+       CANVAS & GAMEPLAY ENGINE
+    ======================================================== */
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const CW = 800;
+    const CH = 500;
+
+    // Table boundaries
+    const TABLE_LEFT = 35;
+    const TABLE_RIGHT = 765;
+    const TABLE_TOP = 35;
+    const TABLE_BOTTOM = 465;
+    const CENTER_X = 400;
+
+    // Game state variables
+    let currentLevelIndex = 0;
+    let currentConfig = LEVEL_CONFIGS[0];
+    let playerScore = 0;
+    let aiScore = 0;
+    let matchStartTime = 0;
+    let isPaused = false;
+    let isMatchActive = false;
+    let goalCooldown = 0; // cooldown ticks after scoring
+
+    // Striker (Mallet) entities
+    const playerStriker = {
+      x: 650,
+      y: 250,
+      targetX: 650,
+      targetY: 250,
+      vx: 0,
+      vy: 0,
+      radius: 28,
+      color: '#ef4444',
+      rimColor: '#b91c1c'
+    };
+
+    const aiStriker = {
+      x: 150,
+      y: 250,
+      targetX: 150,
+      targetY: 250,
+      vx: 0,
+      vy: 0,
+      radius: 28,
+      color: '#3b82f6',
+      rimColor: '#1d4ed8',
+      reactionCounter: 0
+    };
+
+    // Array of active pucks/disks
+    let disks = [];
+
+    // Obstacles
+    let activeObstacles = [];
+
+    // Boss moving goal
+    let aiGoalCenterY = 250;
+    let aiGoalDirection = 1;
+
+    // Visual sparks & goal flash effects
+    let particles = [];
+    let goalFlashAlpha = 0;
+
+    function resetEntitiesForLevel(lvlIndex) {
+      currentLevelIndex = lvlIndex;
+      currentConfig = LEVEL_CONFIGS[lvlIndex];
+      playerScore = 0;
+      aiScore = 0;
+      goalCooldown = 0;
+      matchStartTime = Date.now();
+      isPaused = false;
+      isMatchActive = true;
+
+      // Set target score display
+      document.getElementById('target-score-display').textContent = `FIRST TO ${currentConfig.targetScore}`;
+      updateScoreboardUI();
+
+      // Reset mallets
+      playerStriker.x = 650;
+      playerStriker.y = 250;
+      playerStriker.targetX = 650;
+      playerStriker.targetY = 250;
+      playerStriker.vx = 0;
+      playerStriker.vy = 0;
+
+      aiStriker.x = 150;
+      aiStriker.y = 250;
+      aiStriker.targetX = 150;
+      aiStriker.targetY = 250;
+      aiStriker.vx = 0;
+      aiStriker.vy = 0;
+
+      aiGoalCenterY = 250;
+      aiGoalDirection = 1;
+
+      // Spawn Disks according to level config
+      disks = [];
+      const numDisks = currentConfig.diskCount || 1;
+      for (let i = 0; i < numDisks; i++) {
+        const offset = (numDisks > 1) ? (i === 0 ? -60 : 60) : 0;
+        disks.push({
+          x: CENTER_X + (i === 0 ? 30 : -30),
+          y: 250 + offset,
+          vx: (i === 0 ? 3 : -3) * currentConfig.diskSpeedMultiplier,
+          vy: (Math.random() * 2 - 1) * 2 * currentConfig.diskSpeedMultiplier,
+          radius: 16,
+          trail: []
+        });
+      }
+
+      // Setup Obstacles
+      activeObstacles = JSON.parse(JSON.stringify(currentConfig.obstacles));
+
+      particles = [];
+      goalFlashAlpha = 0;
+    }
+
+    function resetPucksAfterGoal(scoringSide) {
+      const numDisks = currentConfig.diskCount || 1;
+      disks = [];
+      for (let i = 0; i < numDisks; i++) {
+        const offset = (numDisks > 1) ? (i === 0 ? -60 : 60) : 0;
+        // Launch disk toward the side that got scored on
+        const launchDir = scoringSide === 'player' ? -1 : 1;
+        disks.push({
+          x: CENTER_X + (launchDir * 30),
+          y: 250 + offset,
+          vx: launchDir * 3.5 * currentConfig.diskSpeedMultiplier,
+          vy: (Math.random() * 3 - 1.5) * currentConfig.diskSpeedMultiplier,
+          radius: 16,
+          trail: []
+        });
+      }
+    }
+
+    /* Particle spark generator */
+    function addHitSparks(x, y, color = '#ffd978', count = 10) {
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 1.5 + Math.random() * 4;
+        particles.push({
+          x,
+          y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          radius: 2 + Math.random() * 2,
+          color,
+          alpha: 1,
+          decay: 0.04 + Math.random() * 0.03
+        });
+      }
+    }
+
+    /* ========================================================
+       PHYSICS & UPDATE LOOP
+    ======================================================== */
+    function updatePhysics() {
+      if (!isMatchActive || isPaused) return;
+
+      if (goalCooldown > 0) {
+        goalCooldown--;
+      }
+
+      // Update goal flash effect
+      if (goalFlashAlpha > 0) {
+        goalFlashAlpha -= 0.03;
+        if (goalFlashAlpha < 0) goalFlashAlpha = 0;
+      }
+
+      // Boss moving goal calculation
+      if (currentConfig.movingGoalAI) {
+        aiGoalCenterY += aiGoalDirection * 2.2;
+        if (aiGoalCenterY < 150) {
+          aiGoalCenterY = 150;
+          aiGoalDirection = 1;
+        } else if (aiGoalCenterY > 350) {
+          aiGoalCenterY = 350;
+          aiGoalDirection = -1;
+        }
+      } else {
+        aiGoalCenterY = 250;
+      }
+
+      // 1. Update Player Striker position (Mouse/Pointer tracking)
+      const prevPlayerX = playerStriker.x;
+      const prevPlayerY = playerStriker.y;
+
+      // Clamped to right half of table
+      const clampedTargetX = Math.max(CENTER_X + playerStriker.radius + 5, Math.min(TABLE_RIGHT - playerStriker.radius, playerStriker.targetX));
+      const clampedTargetY = Math.max(TABLE_TOP + playerStriker.radius, Math.min(TABLE_BOTTOM - playerStriker.radius, playerStriker.targetY));
+
+      playerStriker.x += (clampedTargetX - playerStriker.x) * 0.85;
+      playerStriker.y += (clampedTargetY - playerStriker.y) * 0.85;
+
+      playerStriker.vx = playerStriker.x - prevPlayerX;
+      playerStriker.vy = playerStriker.y - prevPlayerY;
+
+      // 2. Update AI Striker (Dynamic Intelligence)
+      updateAI();
+
+      // 3. Update Dynamic Obstacles
+      updateObstacles();
+
+      // 4. Update Disks & Collisions (Multi-substepping for tunneling prevention)
+      const SUB_STEPS = 3;
+      for (let step = 0; step < SUB_STEPS; step++) {
+        disks.forEach((disk, dIdx) => {
+          // Move disk fraction
+          disk.x += disk.vx / SUB_STEPS;
+          disk.y += disk.vy / SUB_STEPS;
+
+          // Friction
+          disk.vx *= Math.pow(0.994, 1 / SUB_STEPS);
+          disk.vy *= Math.pow(0.994, 1 / SUB_STEPS);
+
+          // Bound disk speed
+          const maxSpeed = 22 * currentConfig.diskSpeedMultiplier;
+          const currentSpeed = Math.hypot(disk.vx, disk.vy);
+          if (currentSpeed > maxSpeed) {
+            disk.vx = (disk.vx / currentSpeed) * maxSpeed;
+            disk.vy = (disk.vy / currentSpeed) * maxSpeed;
+          }
+
+          // Check collisions with Player Striker
+          checkStrikerCollision(playerStriker, disk, true);
+
+          // Check collisions with AI Striker
+          checkStrikerCollision(aiStriker, disk, false);
+
+          // Check collisions with Obstacles
+          checkObstacleCollisions(disk);
+
+          // Check table borders & Goal mouths
+          checkTableWallCollisions(disk, dIdx);
+        });
+      }
+
+      // Update disk trail
+      disks.forEach(disk => {
+        disk.trail.push({ x: disk.x, y: disk.y });
+        if (disk.trail.length > 7) disk.trail.shift();
+      });
+
+      // Update particles
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.alpha -= p.decay;
+        if (p.alpha <= 0) {
+          particles.splice(i, 1);
+        }
+      }
+    }
+
+    function updateAI() {
+      // Find the most threatening disk (closest to AI goal on left)
+      let primaryDisk = disks[0];
+      if (disks.length > 1) {
+        let minX = Infinity;
+        disks.forEach(d => {
+          if (d.x < minX) {
+            minX = d.x;
+            primaryDisk = d;
+          }
+        });
+      }
+
+      if (!primaryDisk) return;
+
+      const prevX = aiStriker.x;
+      const prevY = aiStriker.y;
+
+      let targetX = 150;
+      let targetY = 250;
+
+      const aiSideThreshold = CENTER_X - 20;
+
+      // AI Decision logic based on disk position
+      if (primaryDisk.x < aiSideThreshold) {
+        // Disk is on AI's half: Defense / Strike Mode
+        if (primaryDisk.x > aiStriker.x) {
+          // Push behind the disk to strike it forward!
+          targetX = primaryDisk.x - 30;
+          targetY = primaryDisk.y + (Math.sin(Date.now() * 0.005) * 8 * (1 - currentConfig.aiAccuracy));
+        } else {
+          // Disk is behind AI striker: Retreat safely to protect goal
+          targetX = 90;
+          targetY = primaryDisk.y;
+        }
+      } else {
+        // Disk is on player's half: Patrol & anticipate rebound
+        targetX = 130 + Math.sin(Date.now() * 0.002) * 25;
+        targetY = 250 + (primaryDisk.y - 250) * 0.45;
+      }
+
+      // Clamp AI to its half of table (left side: x 45..380, y 45..455)
+      targetX = Math.max(TABLE_LEFT + aiStriker.radius, Math.min(CENTER_X - aiStriker.radius - 8, targetX));
+      targetY = Math.max(TABLE_TOP + aiStriker.radius, Math.min(TABLE_BOTTOM - aiStriker.radius, targetY));
+
+      const dx = targetX - aiStriker.x;
+      const dy = targetY - aiStriker.y;
+      const dist = Math.hypot(dx, dy);
+
+      const maxMove = currentConfig.aiSpeed;
+      if (dist > 0) {
+        const moveStep = Math.min(dist, maxMove);
+        aiStriker.x += (dx / dist) * moveStep;
+        aiStriker.y += (dy / dist) * moveStep;
+      }
+
+      aiStriker.vx = aiStriker.x - prevX;
+      aiStriker.vy = aiStriker.y - prevY;
+    }
+
+    function updateObstacles() {
+      activeObstacles.forEach(obs => {
+        if (obs.type === 'oscillating') {
+          obs.y += obs.speed;
+          if (obs.y < obs.minY) {
+            obs.y = obs.minY;
+            obs.speed = -obs.speed;
+          } else if (obs.y > obs.maxY) {
+            obs.y = obs.maxY;
+            obs.speed = -obs.speed;
+          }
+        } else if (obs.type === 'orbit') {
+          obs.angle += obs.speed;
+          obs.x = obs.centerX + Math.cos(obs.angle) * obs.distance;
+          obs.y = obs.centerY + Math.sin(obs.angle) * obs.distance;
+        }
+      });
+    }
+
+    function checkStrikerCollision(striker, disk, isPlayer) {
+      const dx = disk.x - striker.x;
+      const dy = disk.y - striker.y;
+      const dist = Math.hypot(dx, dy);
+      const minDist = striker.radius + disk.radius;
+
+      if (dist < minDist && dist > 0.001) {
+        // Normal vector
+        const nx = dx / dist;
+        const ny = dy / dist;
+
+        // Separate objects to avoid penetration
+        disk.x = striker.x + nx * (minDist + 0.5);
+        disk.y = striker.y + ny * (minDist + 0.5);
+
+        // Relative velocity
+        const rvx = disk.vx - striker.vx;
+        const rvy = disk.vy - striker.vy;
+
+        // Velocity along normal
+        const velAlongNormal = rvx * nx + rvy * ny;
+
+        // Do not resolve if velocities are separating
+        if (velAlongNormal < 0) {
+          const restitution = 1.35;
+          const impulse = -(1 + restitution) * velAlongNormal;
+
+          disk.vx += nx * impulse + striker.vx * 0.65;
+          disk.vy += ny * impulse + striker.vy * 0.65;
+
+          // Ensure minimum kick speed
+          const exitSpeed = Math.hypot(disk.vx, disk.vy);
+          const minKick = 6.5 * currentConfig.diskSpeedMultiplier;
+          if (exitSpeed < minKick) {
+            disk.vx = nx * minKick;
+            disk.vy = ny * minKick;
+          }
+
+          playPaddleHitSound(Math.hypot(disk.vx, disk.vy));
+          addHitSparks(disk.x, disk.y, isPlayer ? '#fca5a5' : '#93c5fd', 8);
+        }
+      }
+    }
+
+    function checkObstacleCollisions(disk) {
+      activeObstacles.forEach(obs => {
+        const dx = disk.x - obs.x;
+        const dy = disk.y - obs.y;
+        const dist = Math.hypot(dx, dy);
+        const minDist = obs.radius + disk.radius;
+
+        if (dist < minDist && dist > 0.001) {
+          const nx = dx / dist;
+          const ny = dy / dist;
+
+          disk.x = obs.x + nx * minDist;
+          disk.y = obs.y + ny * minDist;
+
+          // Reflect velocity
+          const dot = disk.vx * nx + disk.vy * ny;
+          if (dot < 0) {
+            disk.vx = (disk.vx - 2 * dot * nx) * 1.05;
+            disk.vy = (disk.vy - 2 * dot * ny) * 1.05;
+
+            playBumperHitSound();
+            addHitSparks(disk.x, disk.y, '#f59e0b', 12);
+          }
+        }
+      });
+    }
+
+    function checkTableWallCollisions(disk) {
+      // Top wall
+      if (disk.y - disk.radius < TABLE_TOP) {
+        disk.y = TABLE_TOP + disk.radius;
+        disk.vy = -disk.vy * 0.95;
+        playWallBounceSound();
+        addHitSparks(disk.x, disk.y, '#e2e8f0', 4);
+      }
+      // Bottom wall
+      if (disk.y + disk.radius > TABLE_BOTTOM) {
+        disk.y = TABLE_BOTTOM - disk.radius;
+        disk.vy = -disk.vy * 0.95;
+        playWallBounceSound();
+        addHitSparks(disk.x, disk.y, '#e2e8f0', 4);
+      }
+
+      // Goals parameters
+      const halfGoalAI = (currentConfig.goalHeightAI || 170) / 2;
+      const aiGoalTop = aiGoalCenterY - halfGoalAI;
+      const aiGoalBottom = aiGoalCenterY + halfGoalAI;
+
+      const halfGoalPlayer = (currentConfig.goalHeightPlayer || 170) / 2;
+      const playerGoalTop = 250 - halfGoalPlayer;
+      const playerGoalBottom = 250 + halfGoalPlayer;
+
+      // LEFT WALL / AI GOAL
+      if (disk.x - disk.radius < TABLE_LEFT) {
+        if (disk.y >= aiGoalTop && disk.y <= aiGoalBottom) {
+          // GOAL FOR PLAYER!
+          if (goalCooldown === 0) {
+            handleGoalScored('player');
+          }
+        } else {
+          // Bounce off left cushion
+          disk.x = TABLE_LEFT + disk.radius;
+          disk.vx = -disk.vx * 0.95;
+          playWallBounceSound();
+          addHitSparks(disk.x, disk.y, '#e2e8f0', 4);
+        }
+      }
+
+      // RIGHT WALL / PLAYER GOAL
+      if (disk.x + disk.radius > TABLE_RIGHT) {
+        if (disk.y >= playerGoalTop && disk.y <= playerGoalBottom) {
+          // GOAL FOR OPPONENT!
+          if (goalCooldown === 0) {
+            handleGoalScored('ai');
+          }
+        } else {
+          // Bounce off right cushion
+          disk.x = TABLE_RIGHT - disk.radius;
+          disk.vx = -disk.vx * 0.95;
+          playWallBounceSound();
+          addHitSparks(disk.x, disk.y, '#e2e8f0', 4);
+        }
+      }
+    }
+
+    function handleGoalScored(scoringSide) {
+      goalCooldown = 80;
+      goalFlashAlpha = 0.45;
+      playGoalHornSound();
+
+      const overlay = document.getElementById('canvas-overlay-msg');
+      const title = document.getElementById('canvas-overlay-title');
+      const sub = document.getElementById('canvas-overlay-sub');
+
+      if (scoringSide === 'player') {
+        playerScore++;
+        title.textContent = "GOAL! PLAYER SCORES!";
+        title.style.color = "#4ade80";
+        sub.textContent = "Unstoppable shot!";
+      } else {
+        aiScore++;
+        title.textContent = "GOAL! OPPONENT SCORES!";
+        title.style.color = "#f87171";
+        sub.textContent = "Defensive breakdown!";
+      }
+
+      overlay.classList.add('show');
+      updateScoreboardUI();
+
+      setTimeout(() => {
+        overlay.classList.remove('show');
+      }, 1600);
+
+      // Check Match Victory or Defeat
+      if (playerScore >= currentConfig.targetScore) {
+        setTimeout(handleVictory, 1200);
+      } else if (aiScore >= currentConfig.targetScore) {
+        setTimeout(handleDefeat, 1200);
+      } else {
+        setTimeout(() => {
+          resetPucksAfterGoal(scoringSide);
+        }, 1100);
+      }
+    }
+
+    function handleVictory() {
+      isMatchActive = false;
+      const durationSeconds = Math.floor((Date.now() - matchStartTime) / 1000);
+      const mins = String(Math.floor(durationSeconds / 60)).padStart(2, '0');
+      const secs = String(durationSeconds % 60).padStart(2, '0');
+
+      // Calculate score points
+      const matchScore = (playerScore * 100) - (aiScore * 30) + Math.max(0, 300 - durationSeconds * 3);
+      const prevBest = appState.highScores[currentConfig.level] || 0;
+      const isNewRecord = matchScore > prevBest;
+      if (isNewRecord) {
+        appState.highScores[currentConfig.level] = matchScore;
+      }
+
+      // Unlock next level sequentially
+      if (currentConfig.level >= appState.unlockedLevel && appState.unlockedLevel < 5) {
+        appState.unlockedLevel = currentConfig.level + 1;
+      }
+      saveState(appState);
+
+      // Populate Victory Modal
+      document.getElementById('victory-final-score').textContent = `${playerScore} - ${aiScore}`;
+      document.getElementById('victory-match-time').textContent = `${mins}:${secs}`;
+      document.getElementById('victory-high-score').textContent = isNewRecord ? `NEW RECORD: ${matchScore}` : `Record: ${prevBest}`;
+      document.getElementById('victory-sub-text').textContent = currentConfig.level === 5 ? "You defeated The Sovereign Boss!" : `Level ${currentConfig.level} cleared!`;
+
+      // Next level button availability
+      const nextBtn = document.getElementById('btn-next-level');
+      if (currentConfig.level >= 5) {
+        nextBtn.textContent = "CHAMPIONSHIP WON!";
+      } else {
+        nextBtn.textContent = "★ NEXT LEVEL";
+      }
+
+      openModal('modal-victory');
+    }
+
+    function handleDefeat() {
+      isMatchActive = false;
+      document.getElementById('defeat-final-score').textContent = `${playerScore} - ${aiScore}`;
+      openModal('modal-defeat');
+    }
+
+    /* ========================================================
+       CANVAS RENDERING (SKEUOMORPHIC AESTHETIC & THEMES)
+    ======================================================== */
+    function renderPlaygroundSurface(theme) {
+      const halfGoalAI = (currentConfig.goalHeightAI || 170) / 2;
+      const halfGoalPlayer = (currentConfig.goalHeightPlayer || 170) / 2;
+
+      ctx.save();
+
+      if (theme === 'cyber') {
+        // --- 1. Cyber Neon Matrix ---
+        ctx.fillStyle = '#060814';
+        ctx.fillRect(0, 0, CW, CH);
+
+        ctx.fillStyle = '#020308';
+        ctx.fillRect(TABLE_LEFT, TABLE_TOP, TABLE_RIGHT - TABLE_LEFT, TABLE_BOTTOM - TABLE_TOP);
+
+        // Neon laser orthogonal grid
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.12)';
+        ctx.lineWidth = 1;
+        for (let x = TABLE_LEFT + 25; x < TABLE_RIGHT; x += 25) {
+          ctx.beginPath();
+          ctx.moveTo(x, TABLE_TOP);
+          ctx.lineTo(x, TABLE_BOTTOM);
+          ctx.stroke();
+        }
+        for (let y = TABLE_TOP + 25; y < TABLE_BOTTOM; y += 25) {
+          ctx.beginPath();
+          ctx.moveTo(TABLE_LEFT, y);
+          ctx.lineTo(TABLE_RIGHT, y);
+          ctx.stroke();
+        }
+
+        // Glowing Magenta Center Divide
+        ctx.shadowColor = '#ff007f';
+        ctx.shadowBlur = 12;
+        ctx.strokeStyle = '#ff007f';
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        ctx.moveTo(CENTER_X, TABLE_TOP);
+        ctx.lineTo(CENTER_X, TABLE_BOTTOM);
+        ctx.stroke();
+
+        // Glowing Electric Cyan Center Ring
+        ctx.shadowColor = '#00f0ff';
+        ctx.shadowBlur = 14;
+        ctx.strokeStyle = '#00f0ff';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(CENTER_X, 250, 65, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(255, 0, 127, 0.4)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(CENTER_X, 250, 45, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(CENTER_X, 250, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Goal Creases
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.55)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(TABLE_LEFT, aiGoalCenterY, halfGoalAI, -Math.PI / 2, Math.PI / 2);
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(255, 0, 127, 0.55)';
+        ctx.beginPath();
+        ctx.arc(TABLE_RIGHT, 250, halfGoalPlayer, Math.PI / 2, -Math.PI / 2);
+        ctx.stroke();
+
+        renderGoalNet(TABLE_LEFT - 12, aiGoalCenterY - halfGoalAI, 12, halfGoalAI * 2, '#00f0ff');
+        renderGoalNet(TABLE_RIGHT, 250 - halfGoalPlayer, 12, halfGoalPlayer * 2, '#ff007f');
+
+        // Cushion border with neon glow edge
+        ctx.strokeStyle = '#0c1a2e';
+        ctx.lineWidth = 8;
+        ctx.strokeRect(TABLE_LEFT, TABLE_TOP, TABLE_RIGHT - TABLE_LEFT, TABLE_BOTTOM - TABLE_TOP);
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.3)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(TABLE_LEFT, TABLE_TOP, TABLE_RIGHT - TABLE_LEFT, TABLE_BOTTOM - TABLE_TOP);
+
+      } else if (theme === 'mahogany') {
+        // --- 2. Polished Mahogany Woodgrain ---
+        ctx.fillStyle = '#220a03';
+        ctx.fillRect(0, 0, CW, CH);
+
+        // Wood planks layout
+        const plankHeight = 35;
+        for (let y = TABLE_TOP, p = 0; y < TABLE_BOTTOM; y += plankHeight, p++) {
+          const h = Math.min(plankHeight, TABLE_BOTTOM - y);
+          ctx.fillStyle = (p % 2 === 0) ? '#381507' : '#2b1005';
+          ctx.fillRect(TABLE_LEFT, y, TABLE_RIGHT - TABLE_LEFT, h);
+
+          // Wood grain horizontal micro streaks
+          ctx.strokeStyle = 'rgba(255, 215, 160, 0.04)';
+          ctx.lineWidth = 1;
+          for (let gy = y + 7; gy < y + h; gy += 9) {
+            ctx.beginPath();
+            ctx.moveTo(TABLE_LEFT, gy);
+            ctx.lineTo(TABLE_RIGHT, gy);
+            ctx.stroke();
+          }
+          // Seam between planks
+          ctx.strokeStyle = 'rgba(12, 4, 1, 0.65)';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(TABLE_LEFT, y + h);
+          ctx.lineTo(TABLE_RIGHT, y + h);
+          ctx.stroke();
+        }
+
+        // Varnished lacquer diagonal sheen sweep
+        const sheen = ctx.createLinearGradient(TABLE_LEFT, TABLE_TOP, TABLE_RIGHT, TABLE_BOTTOM);
+        sheen.addColorStop(0, 'rgba(255, 255, 255, 0.08)');
+        sheen.addColorStop(0.35, 'rgba(255, 255, 255, 0.01)');
+        sheen.addColorStop(0.7, 'rgba(255, 255, 255, 0.06)');
+        sheen.addColorStop(1, 'transparent');
+        ctx.fillStyle = sheen;
+        ctx.fillRect(TABLE_LEFT, TABLE_TOP, TABLE_RIGHT - TABLE_LEFT, TABLE_BOTTOM - TABLE_TOP);
+
+        // Inlaid golden brass double center line
+        ctx.strokeStyle = '#e5be53';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(CENTER_X - 3, TABLE_TOP);
+        ctx.lineTo(CENTER_X - 3, TABLE_BOTTOM);
+        ctx.moveTo(CENTER_X + 3, TABLE_TOP);
+        ctx.lineTo(CENTER_X + 3, TABLE_BOTTOM);
+        ctx.stroke();
+
+        // Center faceoff brass ring & 8 radial notches
+        ctx.strokeStyle = '#ffd978';
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        ctx.arc(CENTER_X, 250, 65, 0, Math.PI * 2);
+        ctx.stroke();
+
+        for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
+          const rx1 = CENTER_X + Math.cos(a) * 58;
+          const ry1 = 250 + Math.sin(a) * 58;
+          const rx2 = CENTER_X + Math.cos(a) * 72;
+          const ry2 = 250 + Math.sin(a) * 72;
+          ctx.beginPath();
+          ctx.moveTo(rx1, ry1);
+          ctx.lineTo(rx2, ry2);
+          ctx.stroke();
+        }
+
+        ctx.fillStyle = '#fff1b8';
+        ctx.beginPath();
+        ctx.arc(CENTER_X, 250, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Goal Creases
+        ctx.strokeStyle = 'rgba(245, 197, 66, 0.45)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(TABLE_LEFT, aiGoalCenterY, halfGoalAI, -Math.PI / 2, Math.PI / 2);
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(245, 197, 66, 0.45)';
+        ctx.beginPath();
+        ctx.arc(TABLE_RIGHT, 250, halfGoalPlayer, Math.PI / 2, -Math.PI / 2);
+        ctx.stroke();
+
+        renderGoalNet(TABLE_LEFT - 12, aiGoalCenterY - halfGoalAI, 12, halfGoalAI * 2, '#ffd978');
+        renderGoalNet(TABLE_RIGHT, 250 - halfGoalPlayer, 12, halfGoalPlayer * 2, '#e5be53');
+
+        // Cushion border
+        ctx.strokeStyle = '#1a0802';
+        ctx.lineWidth = 8;
+        ctx.strokeRect(TABLE_LEFT, TABLE_TOP, TABLE_RIGHT - TABLE_LEFT, TABLE_BOTTOM - TABLE_TOP);
+
+      } else if (theme === 'steel') {
+        // --- 3. Industrial Steel Deck ---
+        ctx.fillStyle = '#1e242d';
+        ctx.fillRect(0, 0, CW, CH);
+
+        // Brushed metallic gradient
+        const metalGrad = ctx.createLinearGradient(TABLE_LEFT, TABLE_TOP, TABLE_RIGHT, TABLE_BOTTOM);
+        metalGrad.addColorStop(0, '#333d4b');
+        metalGrad.addColorStop(0.5, '#222832');
+        metalGrad.addColorStop(1, '#181e26');
+        ctx.fillStyle = metalGrad;
+        ctx.fillRect(TABLE_LEFT, TABLE_TOP, TABLE_RIGHT - TABLE_LEFT, TABLE_BOTTOM - TABLE_TOP);
+
+        // Diagonal brush micro streaks
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.035)';
+        ctx.lineWidth = 1;
+        for (let i = -150; i < CW + CH; i += 14) {
+          ctx.beginPath();
+          ctx.moveTo(i, TABLE_TOP);
+          ctx.lineTo(i + 220, TABLE_BOTTOM);
+          ctx.stroke();
+        }
+
+        // Hazard warning stripes at goal mouths
+        function drawHazardZone(gx, gy, gh) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.rect(gx, gy, 35, gh);
+          ctx.clip();
+          for (let s = gy - 40; s < gy + gh + 40; s += 16) {
+            ctx.fillStyle = '#facc15';
+            ctx.beginPath();
+            ctx.moveTo(gx, s);
+            ctx.lineTo(gx + 35, s + 20);
+            ctx.lineTo(gx + 35, s + 30);
+            ctx.lineTo(gx, s + 10);
+            ctx.fill();
+            ctx.fillStyle = '#111827';
+            ctx.beginPath();
+            ctx.moveTo(gx, s + 10);
+            ctx.lineTo(gx + 35, s + 30);
+            ctx.lineTo(gx + 35, s + 40);
+            ctx.lineTo(gx, s + 20);
+            ctx.fill();
+          }
+          ctx.restore();
+        }
+        drawHazardZone(TABLE_LEFT, aiGoalCenterY - halfGoalAI, halfGoalAI * 2);
+        drawHazardZone(TABLE_RIGHT - 35, 250 - halfGoalPlayer, halfGoalPlayer * 2);
+
+        // Industrial perimeter rivets
+        ctx.fillStyle = '#94a3b8';
+        for (let rx = TABLE_LEFT + 25; rx < TABLE_RIGHT; rx += 45) {
+          ctx.beginPath();
+          ctx.arc(rx, TABLE_TOP + 8, 2.5, 0, Math.PI * 2);
+          ctx.arc(rx, TABLE_BOTTOM - 8, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Laser etched center line
+        ctx.strokeStyle = 'rgba(203, 213, 225, 0.55)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(CENTER_X, TABLE_TOP);
+        ctx.lineTo(CENTER_X, TABLE_BOTTOM);
+        ctx.stroke();
+
+        // Machined center ring & crosshair
+        ctx.strokeStyle = 'rgba(203, 213, 225, 0.45)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(CENTER_X, 250, 65, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = '#cbd5e1';
+        ctx.beginPath();
+        ctx.arc(CENTER_X, 250, 7, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Crease lines
+        ctx.strokeStyle = 'rgba(250, 204, 21, 0.5)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(TABLE_LEFT + 35, aiGoalCenterY, halfGoalAI - 10, -Math.PI / 2, Math.PI / 2);
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(239, 68, 68, 0.5)';
+        ctx.beginPath();
+        ctx.arc(TABLE_RIGHT - 35, 250, halfGoalPlayer - 10, Math.PI / 2, -Math.PI / 2);
+        ctx.stroke();
+
+        renderGoalNet(TABLE_LEFT - 12, aiGoalCenterY - halfGoalAI, 12, halfGoalAI * 2, '#facc15');
+        renderGoalNet(TABLE_RIGHT, 250 - halfGoalPlayer, 12, halfGoalPlayer * 2, '#ef4444');
+
+        // Cushion border
+        ctx.strokeStyle = '#141820';
+        ctx.lineWidth = 8;
+        ctx.strokeRect(TABLE_LEFT, TABLE_TOP, TABLE_RIGHT - TABLE_LEFT, TABLE_BOTTOM - TABLE_TOP);
+
+      } else if (theme === 'emerald') {
+        // --- 4. Casino Velvet ---
+        ctx.fillStyle = '#04170d';
+        ctx.fillRect(0, 0, CW, CH);
+
+        // Radial lush green felt
+        const feltGrad = ctx.createRadialGradient(CENTER_X, 250, 50, CENTER_X, 250, 420);
+        feltGrad.addColorStop(0, '#0a3d22');
+        feltGrad.addColorStop(0.7, '#062916');
+        feltGrad.addColorStop(1, '#02160b');
+        ctx.fillStyle = feltGrad;
+        ctx.fillRect(TABLE_LEFT, TABLE_TOP, TABLE_RIGHT - TABLE_LEFT, TABLE_BOTTOM - TABLE_TOP);
+
+        // Felt micro fiber stippling
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.025)';
+        for (let sx = TABLE_LEFT + 12; sx < TABLE_RIGHT; sx += 18) {
+          for (let sy = TABLE_TOP + 12; sy < TABLE_BOTTOM; sy += 18) {
+            ctx.fillRect(sx, sy, 1.2, 1.2);
+          }
+        }
+
+        // Bullion Gold Leaf dividing line with pinstripes
+        ctx.strokeStyle = 'rgba(251, 191, 36, 0.7)';
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        ctx.moveTo(CENTER_X, TABLE_TOP);
+        ctx.lineTo(CENTER_X, TABLE_BOTTOM);
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(251, 191, 36, 0.25)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(CENTER_X - 8, TABLE_TOP);
+        ctx.lineTo(CENTER_X - 8, TABLE_BOTTOM);
+        ctx.moveTo(CENTER_X + 8, TABLE_TOP);
+        ctx.lineTo(CENTER_X + 8, TABLE_BOTTOM);
+        ctx.stroke();
+
+        // Casino Medallion gold ring
+        ctx.strokeStyle = '#ffd978';
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        ctx.arc(CENTER_X, 250, 65, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(251, 191, 36, 0.35)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(CENTER_X, 250, 55, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffd978';
+        ctx.beginPath();
+        ctx.arc(CENTER_X, 250, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Creases
+        ctx.strokeStyle = 'rgba(251, 191, 36, 0.45)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(TABLE_LEFT, aiGoalCenterY, halfGoalAI, -Math.PI / 2, Math.PI / 2);
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(251, 191, 36, 0.45)';
+        ctx.beginPath();
+        ctx.arc(TABLE_RIGHT, 250, halfGoalPlayer, Math.PI / 2, -Math.PI / 2);
+        ctx.stroke();
+
+        renderGoalNet(TABLE_LEFT - 12, aiGoalCenterY - halfGoalAI, 12, halfGoalAI * 2, '#34d399');
+        renderGoalNet(TABLE_RIGHT, 250 - halfGoalPlayer, 12, halfGoalPlayer * 2, '#ffd978');
+
+        // Cushion border
+        ctx.strokeStyle = '#052213';
+        ctx.lineWidth = 8;
+        ctx.strokeRect(TABLE_LEFT, TABLE_TOP, TABLE_RIGHT - TABLE_LEFT, TABLE_BOTTOM - TABLE_TOP);
+
+      } else if (theme === 'carbon') {
+        // --- 5. Carbon Stealth ---
+        ctx.fillStyle = '#0a0d12';
+        ctx.fillRect(0, 0, CW, CH);
+
+        ctx.fillStyle = '#111419';
+        ctx.fillRect(TABLE_LEFT, TABLE_TOP, TABLE_RIGHT - TABLE_LEFT, TABLE_BOTTOM - TABLE_TOP);
+
+        // Procedural 2x2 woven carbon twill pattern
+        const tileSize = 8;
+        for (let x = TABLE_LEFT; x < TABLE_RIGHT; x += tileSize) {
+          for (let y = TABLE_TOP; y < TABLE_BOTTOM; y += tileSize) {
+            const isAlt = ((Math.floor(x / tileSize) + Math.floor(y / tileSize)) % 2 === 0);
+            ctx.fillStyle = isAlt ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.25)';
+            ctx.fillRect(x, y, tileSize, tileSize);
+          }
+        }
+
+        // Dual GT Racing Red center stripes
+        ctx.fillStyle = 'rgba(239, 68, 68, 0.65)';
+        ctx.fillRect(CENTER_X - 14, TABLE_TOP, 9, TABLE_BOTTOM - TABLE_TOP);
+        ctx.fillRect(CENTER_X + 5, TABLE_TOP, 9, TABLE_BOTTOM - TABLE_TOP);
+
+        // High-contrast center divide
+        ctx.strokeStyle = '#f8fafc';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(CENTER_X, TABLE_TOP);
+        ctx.lineTo(CENTER_X, TABLE_BOTTOM);
+        ctx.stroke();
+
+        // Technical Telemetry center circle
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        ctx.arc(CENTER_X, 250, 65, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(248, 250, 252, 0.4)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(CENTER_X, 250, 50, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.arc(CENTER_X, 250, 7, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Creases
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(TABLE_LEFT, aiGoalCenterY, halfGoalAI, -Math.PI / 2, Math.PI / 2);
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(239, 68, 68, 0.45)';
+        ctx.beginPath();
+        ctx.arc(TABLE_RIGHT, 250, halfGoalPlayer, Math.PI / 2, -Math.PI / 2);
+        ctx.stroke();
+
+        renderGoalNet(TABLE_LEFT - 12, aiGoalCenterY - halfGoalAI, 12, halfGoalAI * 2, '#38bdf8');
+        renderGoalNet(TABLE_RIGHT, 250 - halfGoalPlayer, 12, halfGoalPlayer * 2, '#ef4444');
+
+        // Cushion border
+        ctx.strokeStyle = '#090c10';
+        ctx.lineWidth = 8;
+        ctx.strokeRect(TABLE_LEFT, TABLE_TOP, TABLE_RIGHT - TABLE_LEFT, TABLE_BOTTOM - TABLE_TOP);
+
+      } else {
+        // --- Default: Midnight Ice (Classic Air Hockey) ---
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, CW, CH);
+
+        ctx.fillStyle = '#090e17';
+        ctx.fillRect(TABLE_LEFT, TABLE_TOP, TABLE_RIGHT - TABLE_LEFT, TABLE_BOTTOM - TABLE_TOP);
+
+        // Air jet micro perforations grid
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.035)';
+        for (let x = TABLE_LEFT + 15; x < TABLE_RIGHT; x += 22) {
+          for (let y = TABLE_TOP + 15; y < TABLE_BOTTOM; y += 22) {
+            ctx.beginPath();
+            ctx.arc(x, y, 1.2, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+
+        // Dividing red line
+        ctx.strokeStyle = 'rgba(239, 68, 68, 0.45)';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(CENTER_X, TABLE_TOP);
+        ctx.lineTo(CENTER_X, TABLE_BOTTOM);
+        ctx.stroke();
+
+        // Center faceoff outer ring
+        ctx.strokeStyle = 'rgba(229, 190, 83, 0.35)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(CENTER_X, 250, 65, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = '#e5be53';
+        ctx.beginPath();
+        ctx.arc(CENTER_X, 250, 7, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Creases
+        ctx.strokeStyle = 'rgba(96, 165, 250, 0.35)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(TABLE_LEFT, aiGoalCenterY, halfGoalAI, -Math.PI / 2, Math.PI / 2);
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(248, 113, 113, 0.35)';
+        ctx.beginPath();
+        ctx.arc(TABLE_RIGHT, 250, halfGoalPlayer, Math.PI / 2, -Math.PI / 2);
+        ctx.stroke();
+
+        renderGoalNet(TABLE_LEFT - 12, aiGoalCenterY - halfGoalAI, 12, halfGoalAI * 2, '#60a5fa');
+        renderGoalNet(TABLE_RIGHT, 250 - halfGoalPlayer, 12, halfGoalPlayer * 2, '#f87171');
+
+        // Cushion border
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = 8;
+        ctx.strokeRect(TABLE_LEFT, TABLE_TOP, TABLE_RIGHT - TABLE_LEFT, TABLE_BOTTOM - TABLE_TOP);
+      }
+
+      ctx.restore();
+    }
+
+    function render() {
+      ctx.clearRect(0, 0, CW, CH);
+
+      // 1. Render Playground Surface according to selected theme
+      const currentTheme = appState.playgroundTheme || 'midnight';
+      renderPlaygroundSurface(currentTheme);
+
+      // 4. Render Center Moving / Orbiting Obstacles
+      renderObstacles();
+
+      // 5. Render Disks / Pucks (with 3D metallic shine and motion blur trail)
+      disks.forEach(disk => {
+        renderDisk(disk);
+      });
+
+      // 6. Render Strikers / Paddles (Skeuomorphic 3D beveled mallets)
+      renderStriker(aiStriker, 'ai');
+      renderStriker(playerStriker, 'player');
+
+      // 7. Render Particle Sparks
+      particles.forEach(p => {
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.alpha;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1.0;
+
+      // 8. Goal Flash screen effect
+      if (goalFlashAlpha > 0) {
+        ctx.fillStyle = `rgba(255, 255, 255, ${goalFlashAlpha})`;
+        ctx.fillRect(0, 0, CW, CH);
+      }
+    }
+
+    function renderGoalNet(x, y, w, h, tintColor) {
+      // Goal recess background
+      ctx.fillStyle = '#05070a';
+      ctx.fillRect(x, y, w, h);
+
+      // Goal mesh lines
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.lineWidth = 1;
+      for (let gy = y + 5; gy < y + h; gy += 8) {
+        ctx.beginPath();
+        ctx.moveTo(x, gy);
+        ctx.lineTo(x + w, gy);
+        ctx.stroke();
+      }
+
+      // Goal frame glow
+      ctx.strokeStyle = tintColor;
+      ctx.lineWidth = 2.5;
+      ctx.strokeRect(x, y, w, h);
+    }
+
+    function renderObstacles() {
+      activeObstacles.forEach(obs => {
+        ctx.save();
+        // Drop shadow
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+        ctx.shadowBlur = 10;
+        ctx.shadowOffsetY = 4;
+
+        // Outer brass bumper ring
+        const grad = ctx.createRadialGradient(obs.x - obs.radius * 0.3, obs.y - obs.radius * 0.3, 2, obs.x, obs.y, obs.radius);
+        grad.addColorStop(0, '#fff3be');
+        grad.addColorStop(0.5, obs.color);
+        grad.addColorStop(1, '#3b2a05');
+
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(obs.x, obs.y, obs.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = '#fff1b8';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Inner core
+        ctx.fillStyle = '#1e232a';
+        ctx.beginPath();
+        ctx.arc(obs.x, obs.y, obs.radius * 0.45, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      });
+    }
+
+    function renderDisk(disk) {
+      // Motion trail
+      if (disk.trail.length > 1) {
+        for (let i = 0; i < disk.trail.length - 1; i++) {
+          const t1 = disk.trail[i];
+          const t2 = disk.trail[i + 1];
+          const alpha = (i / disk.trail.length) * 0.25;
+          ctx.strokeStyle = `rgba(254, 215, 170, ${alpha})`;
+          ctx.lineWidth = disk.radius * 1.5;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(t1.x, t1.y);
+          ctx.lineTo(t2.x, t2.y);
+          ctx.stroke();
+        }
+      }
+
+      ctx.save();
+      // Drop shadow on felt
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+      ctx.shadowBlur = 12;
+      ctx.shadowOffsetY = 5;
+
+      // Outer chrome/metallic disk body
+      const diskGrad = ctx.createRadialGradient(
+        disk.x - disk.radius * 0.35, 
+        disk.y - disk.radius * 0.35, 
+        2, 
+        disk.x, 
+        disk.y, 
+        disk.radius
+      );
+      diskGrad.addColorStop(0, '#ffffff');
+      diskGrad.addColorStop(0.4, '#e2e8f0');
+      diskGrad.addColorStop(0.8, '#94a3b8');
+      diskGrad.addColorStop(1, '#334155');
+
+      ctx.fillStyle = diskGrad;
+      ctx.beginPath();
+      ctx.arc(disk.x, disk.y, disk.radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Beveled rim
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Recessed inner grip circle
+      ctx.fillStyle = '#1e293b';
+      ctx.beginPath();
+      ctx.arc(disk.x, disk.y, disk.radius * 0.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    function renderStriker(striker) {
+      ctx.save();
+      // Deep tactile shadow
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+      ctx.shadowBlur = 16;
+      ctx.shadowOffsetY = 6;
+
+      // Base ring
+      const baseGrad = ctx.createRadialGradient(
+        striker.x - striker.radius * 0.35,
+        striker.y - striker.radius * 0.35,
+        4,
+        striker.x,
+        striker.y,
+        striker.radius
+      );
+      baseGrad.addColorStop(0, '#ffffff');
+      baseGrad.addColorStop(0.3, striker.color);
+      baseGrad.addColorStop(0.85, striker.rimColor);
+      baseGrad.addColorStop(1, '#111827');
+
+      ctx.fillStyle = baseGrad;
+      ctx.beginPath();
+      ctx.arc(striker.x, striker.y, striker.radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Outer metallic edge highlight
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Stepped inner ring
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(striker.x, striker.y, striker.radius * 0.68, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Ergonomic center handle knob
+      const knobGrad = ctx.createRadialGradient(
+        striker.x - striker.radius * 0.2,
+        striker.y - striker.radius * 0.2,
+        2,
+        striker.x,
+        striker.y,
+        striker.radius * 0.45
+      );
+      knobGrad.addColorStop(0, '#ffffff');
+      knobGrad.addColorStop(0.4, '#cbd5e1');
+      knobGrad.addColorStop(0.9, '#334155');
+      knobGrad.addColorStop(1, '#0f172a');
+
+      ctx.fillStyle = knobGrad;
+      ctx.beginPath();
+      ctx.arc(striker.x, striker.y, striker.radius * 0.45, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    /* Main animation frame */
+    function gameLoop() {
+      updatePhysics();
+      render();
+      requestAnimationFrame(gameLoop);
+    }
+
+    /* ========================================================
+       SCOREBOARD & UI UPDATES
+    ======================================================== */
+    function updateScoreboardUI() {
+      const aiCard = document.getElementById('score-ai-card');
+      const playerCard = document.getElementById('score-player-card');
+
+      aiCard.textContent = aiScore;
+      playerCard.textContent = playerScore;
+    }
+
+    function buildLevelSelectGrid() {
+      const container = document.getElementById('level-grid-container');
+      container.innerHTML = '';
+
+      LEVEL_CONFIGS.forEach(cfg => {
+        const isLocked = cfg.level > appState.unlockedLevel;
+        const best = appState.highScores[cfg.level] || 0;
+
+        const card = document.createElement('div');
+        card.className = `level-card ${isLocked ? 'locked' : ''}`;
+        card.innerHTML = `
+          <div class="level-number">LEVEL ${cfg.level}</div>
+          <div class="level-name">${cfg.name}</div>
+          <div class="level-badge">${isLocked ? '🔒 LOCKED' : `Target: ${cfg.targetScore} pts`}</div>
+          <div class="level-high-score">${isLocked ? '' : (best > 0 ? `Best: ${best}` : 'Unplayed')}</div>
+        `;
+
+        if (!isLocked) {
+          card.addEventListener('click', () => {
+            playClickSound();
+            closeAllModals();
+            resetEntitiesForLevel(cfg.level - 1);
+          });
+        }
+
+        container.appendChild(card);
+      });
+    }
+
+    /* ========================================================
+       PLAYGROUND THEME SELECTION & APPLICATION
+    ======================================================== */
+    function setPlaygroundTheme(themeId, fromUser = true) {
+      const theme = PLAYGROUND_THEMES.find(t => t.id === themeId) || PLAYGROUND_THEMES[0];
+      appState.playgroundTheme = theme.id;
+      saveState(appState);
+
+      // 1. Update Table Frame Outer Styling
+      const frameEl = document.getElementById('main-table-frame');
+      if (frameEl) {
+        frameEl.className = 'table-wood-frame ' + theme.frameClass;
+      }
+
+      // 2. Update Header Label
+      const headerLabel = document.getElementById('header-theme-name');
+      if (headerLabel) {
+        headerLabel.textContent = theme.name;
+      }
+
+      // 3. Update Quick Switcher Pills (above canvas)
+      document.querySelectorAll('.theme-pill').forEach(pill => {
+        if (pill.getAttribute('data-theme') === theme.id) {
+          pill.classList.add('active');
+        } else {
+          pill.classList.remove('active');
+        }
+      });
+
+      // 4. Update Modal Cards Active State
+      document.querySelectorAll('.theme-card').forEach(card => {
+        const isCurrent = card.getAttribute('data-theme') === theme.id;
+        card.classList.toggle('active', isCurrent);
+        const badge = card.querySelector('.theme-status-badge');
+        if (badge) {
+          badge.textContent = isCurrent ? '✓ ACTIVE' : 'SELECT';
+        }
+      });
+
+      if (fromUser) {
+        playClickSound();
+      }
+    }
+
+    function buildThemeGrid() {
+      const container = document.getElementById('theme-grid-container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      PLAYGROUND_THEMES.forEach(t => {
+        const isCurrent = (appState.playgroundTheme || 'midnight') === t.id;
+        const card = document.createElement('div');
+        card.className = `theme-card ${isCurrent ? 'active' : ''}`;
+        card.setAttribute('data-theme', t.id);
+
+        card.innerHTML = `
+          <div class="theme-preview-box" style="background: ${t.previewGradient}; border-color: ${t.accentColor};">
+            <span class="theme-card-tag">${t.tag}</span>
+            <div style="width: 44px; height: 44px; border-radius: 50%; border: 2px dashed ${t.accentColor}; opacity: 0.7;"></div>
+          </div>
+          <div class="theme-card-title">
+            <span>${t.name}</span>
+          </div>
+          <p class="theme-card-desc">${t.desc}</p>
+          <div class="theme-status-badge">${isCurrent ? '✓ ACTIVE' : 'SELECT'}</div>
+        `;
+
+        card.addEventListener('click', () => {
+          setPlaygroundTheme(t.id, true);
+        });
+
+        container.appendChild(card);
+      });
+    }
+
+    /* ========================================================
+       MODAL SYSTEM
+    ======================================================== */
+    function openModal(id) {
+      closeAllModals();
+      const modal = document.getElementById(id);
+      if (modal) {
+        modal.classList.add('active');
+      }
+    }
+
+    function closeAllModals() {
+      document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('active'));
+    }
+
+    /* ========================================================
+       EVENT LISTENERS & USER CONTROLS
+    ======================================================== */
+    // Canvas Mouse & Touch controls
+    function handlePointerMove(e) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = CW / rect.width;
+      const scaleY = CH / rect.height;
+
+      let clientX, clientY;
+      if (e.touches && e.touches.length > 0) {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+      } else {
+        clientX = e.clientX;
+        clientY = e.clientY;
+      }
+
+      playerStriker.targetX = (clientX - rect.left) * scaleX;
+      playerStriker.targetY = (clientY - rect.top) * scaleY;
+    }
+
+    canvas.addEventListener('mousemove', handlePointerMove);
+    canvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      handlePointerMove(e);
+    }, { passive: false });
+
+    canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      initAudio();
+      handlePointerMove(e);
+    }, { passive: false });
+
+    // Splash screen enter button
+    document.getElementById('btn-enter-splash').addEventListener('click', () => {
+      initAudio();
+      playClickSound();
+      const splash = document.getElementById('splash-screen');
+      splash.classList.add('hidden');
+      resetEntitiesForLevel(appState.unlockedLevel - 1);
+    });
+
+    // Top Header Buttons
+    document.getElementById('btn-menu-trigger').addEventListener('click', () => {
+      initAudio();
+      playClickSound();
+      isPaused = true;
+      openModal('modal-main-menu');
+    });
+
+    document.getElementById('btn-pause-trigger').addEventListener('click', () => {
+      initAudio();
+      playClickSound();
+      isPaused = !isPaused;
+      if (isPaused) {
+        openModal('modal-pause');
+      } else {
+        closeAllModals();
+      }
+    });
+
+    const btnThemeTrigger = document.getElementById('btn-theme-trigger');
+    if (btnThemeTrigger) {
+      btnThemeTrigger.addEventListener('click', () => {
+        initAudio();
+        playClickSound();
+        buildThemeGrid();
+        openModal('modal-theme-select');
+      });
+    }
+
+    // Quick Playground Switcher Bar Pills (above canvas)
+    document.querySelectorAll('.theme-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        initAudio();
+        const themeId = pill.getAttribute('data-theme');
+        if (themeId) {
+          setPlaygroundTheme(themeId, true);
+        }
+      });
+    });
+
+    // Main Menu Buttons
+    document.getElementById('btn-menu-start').addEventListener('click', () => {
+      playClickSound();
+      closeAllModals();
+      resetEntitiesForLevel(appState.unlockedLevel - 1);
+    });
+
+    const btnMenuTheme = document.getElementById('btn-menu-theme');
+    if (btnMenuTheme) {
+      btnMenuTheme.addEventListener('click', () => {
+        playClickSound();
+        buildThemeGrid();
+        openModal('modal-theme-select');
+      });
+    }
+
+    document.getElementById('btn-menu-levels').addEventListener('click', () => {
+      playClickSound();
+      buildLevelSelectGrid();
+      openModal('modal-level-select');
+    });
+
+    document.getElementById('btn-menu-help').addEventListener('click', () => {
+      playClickSound();
+      openModal('modal-how-to-play');
+    });
+
+    document.getElementById('btn-menu-reset').addEventListener('click', () => {
+      playClickSound();
+      openModal('modal-reset-confirm');
+    });
+
+    // Theme Modal Close button
+    const btnCloseTheme = document.getElementById('btn-close-theme');
+    if (btnCloseTheme) {
+      btnCloseTheme.addEventListener('click', () => {
+        playClickSound();
+        closeAllModals();
+      });
+    }
+
+    // Level Select & Help Close buttons
+    document.getElementById('btn-close-levels').addEventListener('click', () => {
+      playClickSound();
+      openModal('modal-main-menu');
+    });
+
+    document.getElementById('btn-close-help').addEventListener('click', () => {
+      playClickSound();
+      closeAllModals();
+    });
+
+    // Pause Modal Buttons
+    document.getElementById('btn-pause-resume').addEventListener('click', () => {
+      playClickSound();
+      isPaused = false;
+      closeAllModals();
+    });
+
+    document.getElementById('btn-pause-restart').addEventListener('click', () => {
+      playClickSound();
+      closeAllModals();
+      resetEntitiesForLevel(currentLevelIndex);
+    });
+
+    document.getElementById('btn-pause-menu').addEventListener('click', () => {
+      playClickSound();
+      openModal('modal-main-menu');
+    });
+
+    // Victory Modal Buttons
+    document.getElementById('btn-next-level').addEventListener('click', () => {
+      playClickSound();
+      closeAllModals();
+      if (currentLevelIndex < 4) {
+        resetEntitiesForLevel(currentLevelIndex + 1);
+      } else {
+        // Loop or stay on Boss
+        resetEntitiesForLevel(4);
+      }
+    });
+
+    document.getElementById('btn-replay-level').addEventListener('click', () => {
+      playClickSound();
+      closeAllModals();
+      resetEntitiesForLevel(currentLevelIndex);
+    });
+
+    document.getElementById('btn-victory-menu').addEventListener('click', () => {
+      playClickSound();
+      openModal('modal-main-menu');
+    });
+
+    // Defeat Modal Buttons
+    document.getElementById('btn-defeat-retry').addEventListener('click', () => {
+      playClickSound();
+      closeAllModals();
+      resetEntitiesForLevel(currentLevelIndex);
+    });
+
+    document.getElementById('btn-defeat-menu').addEventListener('click', () => {
+      playClickSound();
+      openModal('modal-main-menu');
+    });
+
+    // Reset Progress Modal Buttons
+    document.getElementById('btn-confirm-reset').addEventListener('click', () => {
+      playClickSound();
+      appState.unlockedLevel = 1;
+      appState.highScores = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+      saveState(appState);
+      closeAllModals();
+      resetEntitiesForLevel(0);
+    });
+
+    document.getElementById('btn-cancel-reset').addEventListener('click', () => {
+      playClickSound();
+      openModal('modal-main-menu');
+    });
+
+    // Audio Rack Station Controls
+    const btnAudioToggle = document.getElementById('btn-audio-toggle');
+    const audioLed = document.getElementById('audio-led');
+    const trackSelector = document.getElementById('audio-track-selector');
+    const volumeSlider = document.getElementById('volume-slider');
+    const volPercentText = document.getElementById('vol-percent-text');
+    const btnAudioMute = document.getElementById('btn-audio-mute');
+
+    // Initialize UI from saved state
+    volumeSlider.value = appState.audio.volume;
+    volPercentText.textContent = `${appState.audio.volume}%`;
+    trackSelector.value = appState.audio.currentTrackIndex;
+    btnAudioMute.textContent = appState.audio.muted ? '🔇' : '🔊';
+
+    btnAudioToggle.addEventListener('click', () => {
+      initAudio();
+      playClickSound();
+      appState.audio.isPlaying = !appState.audio.isPlaying;
+      if (appState.audio.isPlaying) {
+        btnAudioToggle.textContent = '⏸ PAUSE';
+        audioLed.className = 'led-indicator active';
+        startMusicEngine();
+      } else {
+        btnAudioToggle.textContent = '▶ PLAY';
+        audioLed.className = 'led-indicator paused';
+        stopMusicEngine();
+      }
+      saveState(appState);
+    });
+
+    trackSelector.addEventListener('change', (e) => {
+      initAudio();
+      playClickSound();
+      appState.audio.currentTrackIndex = parseInt(e.target.value, 10);
+      synthStep = 0;
+      saveState(appState);
+    });
+
+    volumeSlider.addEventListener('input', (e) => {
+      initAudio();
+      const val = parseInt(e.target.value, 10);
+      appState.audio.volume = val;
+      volPercentText.textContent = `${val}%`;
+      updateAudioVolumes();
+      saveState(appState);
+    });
+
+    btnAudioMute.addEventListener('click', () => {
+      initAudio();
+      playClickSound();
+      appState.audio.muted = !appState.audio.muted;
+      btnAudioMute.textContent = appState.audio.muted ? '🔇' : '🔊';
+      updateAudioVolumes();
+      saveState(appState);
+    });
+
+    // Initialize Playground Theme and UI
+    buildThemeGrid();
+    setPlaygroundTheme(appState.playgroundTheme || 'midnight', false);
+
+    // Start game loop
+    resetEntitiesForLevel(0);
+    requestAnimationFrame(gameLoop);
+
+  })();
+  </script>
+</body>
+</html>

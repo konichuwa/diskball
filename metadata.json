@@ -1,0 +1,7 @@
+{
+  "name": "Diskball Championship",
+  "description": "A retro skeuomorphic HTML5 canvas Diskball game with physical paddles, customizable playground arenas, 5 sequential levels, center obstacles, flip-clock scoreboard, and a brass audio control dock.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
