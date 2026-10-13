@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Diskball Championship</title>
-  <meta name="description" content="A retro skeuomorphic HTML5 canvas Diskball game with physical paddles, 5 sequential levels, center obstacles, flip-clock scoreboard, and a brass audio control dock.">
+  <meta name="description" content="A retro skeuomorphic HTML5 canvas Diskball game with physical paddles, coin rewards, daily mission tasks system, Pro Shop mallet skins, customizable playground arenas, 5 sequential levels, center obstacles, persistent match history logs, flip-clock scoreboard, and a brass audio control dock.">
   <meta property="og:title" content="Diskball Championship">
-  <meta property="og:description" content="A retro skeuomorphic HTML5 canvas Diskball game with physical paddles, 5 sequential levels, center obstacles, flip-clock scoreboard, and a brass audio control dock.">
+  <meta property="og:description" content="A retro skeuomorphic HTML5 canvas Diskball game with physical paddles, coin rewards, daily mission tasks system, Pro Shop mallet skins, customizable playground arenas, 5 sequential levels, center obstacles, persistent match history logs, flip-clock scoreboard, and a brass audio control dock.">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
 
@@ -253,6 +253,51 @@
       font-size: 13px;
       font-weight: 800;
       color: #e5be53;
+    }
+
+    /* Skeuomorphic Coin Vault Badge in Header */
+    .coins-chassis-badge {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: linear-gradient(180deg, #2b1f09 0%, #150f04 100%);
+      padding: 4px 12px;
+      border-radius: 8px;
+      border: 1.5px solid #d4a52e;
+      box-shadow: 
+        inset 0 1px 2px rgba(255, 235, 160, 0.3),
+        0 2px 6px rgba(0, 0, 0, 0.7);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+    .coins-chassis-badge:hover {
+      border-color: #ffe885;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(229, 190, 83, 0.3);
+    }
+    .coin-icon-spinning {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #fff6c7 0%, #f59e0b 50%, #78350f 100%);
+      border: 1.5px solid #ffea9f;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.6), inset 0 1px 1px #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 900;
+      color: #451a03;
+      text-shadow: 0 1px 0 rgba(255,255,255,0.7);
+    }
+    .coins-display-text {
+      font-family: var(--font-mono);
+      font-size: 16px;
+      font-weight: 900;
+      color: #fef08a;
+      text-shadow: 0 0 8px rgba(250, 204, 21, 0.6);
+      letter-spacing: 0.5px;
     }
 
     /* ========================================================
@@ -593,6 +638,619 @@
       color: #052e16;
       border-color: #86efac;
       box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+    }
+
+    /* Match History Log Styling */
+    .history-summary-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .history-stat-box {
+      background: linear-gradient(180deg, #181d26 0%, #0d1017 100%);
+      border: 1px solid #2e3846;
+      border-radius: 8px;
+      padding: 8px 12px;
+      text-align: center;
+      box-shadow: inset 0 1px 1px rgba(255,255,255,0.06);
+    }
+    .history-stat-num {
+      font-family: var(--font-mono);
+      font-size: 18px;
+      font-weight: 900;
+      color: #ffd978;
+    }
+    .history-stat-lbl {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: #94a3b8;
+      margin-top: 2px;
+    }
+
+    .history-list-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 320px;
+      overflow-y: auto;
+      padding-right: 4px;
+      margin: 12px 0;
+    }
+    .history-list-container::-webkit-scrollbar {
+      width: 6px;
+    }
+    .history-list-container::-webkit-scrollbar-track {
+      background: #11151c;
+      border-radius: 3px;
+    }
+    .history-list-container::-webkit-scrollbar-thumb {
+      background: #3c495c;
+      border-radius: 3px;
+    }
+
+    .history-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(180deg, #1b2029 0%, #10141a 100%);
+      border: 1px solid #2d3644;
+      border-radius: 8px;
+      padding: 8px 14px;
+      transition: border-color 0.15s ease;
+      gap: 10px;
+    }
+    .history-row:hover {
+      border-color: #55667e;
+    }
+    .history-row.win {
+      border-left: 4px solid #4ade80;
+    }
+    .history-row.loss {
+      border-left: 4px solid #f87171;
+    }
+
+    .history-badge {
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 4px;
+      min-width: 58px;
+      text-align: center;
+    }
+    .history-badge.win {
+      background: rgba(74, 222, 128, 0.15);
+      color: #4ade80;
+      border: 1px solid rgba(74, 222, 128, 0.4);
+    }
+    .history-badge.loss {
+      background: rgba(248, 113, 113, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(248, 113, 113, 0.4);
+    }
+
+    .history-details {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      gap: 2px;
+    }
+    .history-level-title {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 800;
+      color: #f1f5f9;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .history-meta-sub {
+      font-size: 11px;
+      color: #94a3b8;
+      display: flex;
+      gap: 8px;
+    }
+
+    .history-score-display {
+      font-family: var(--font-mono);
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      background: #0b0e14;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid #232c38;
+      white-space: nowrap;
+    }
+    .history-score-display .player-pts {
+      color: #4ade80;
+    }
+    .history-score-display .ai-pts {
+      color: #f87171;
+    }
+    .history-score-display .divider {
+      color: #64748b;
+      margin: 0 4px;
+    }
+
+    .history-empty-state {
+      text-align: center;
+      padding: 32px 16px;
+      color: #94a3b8;
+      font-size: 13px;
+      border: 1px dashed #333d4b;
+      border-radius: 8px;
+      background: rgba(15, 20, 28, 0.5);
+    }
+
+    /* Pro Shop / Coin Exchange Modal Styles */
+    .shop-tabs-nav {
+      display: flex;
+      gap: 8px;
+      border-bottom: 2px solid #54220e;
+      padding-bottom: 8px;
+      margin-bottom: 14px;
+    }
+    .shop-tab-btn {
+      flex: 1;
+      padding: 8px 12px;
+      background: #14171e;
+      border: 1.5px solid #2e3846;
+      border-radius: 6px;
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-transform: uppercase;
+    }
+    .shop-tab-btn.active {
+      background: linear-gradient(180deg, #fae9a4 0%, #c59b27 100%);
+      color: #271a02;
+      border-color: #ffeaa2;
+      box-shadow: 0 0 10px rgba(229, 190, 83, 0.4);
+    }
+
+    .shop-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+      max-height: 340px;
+      overflow-y: auto;
+      padding-right: 4px;
+      margin-bottom: 14px;
+    }
+    .shop-grid::-webkit-scrollbar {
+      width: 6px;
+    }
+    .shop-grid::-webkit-scrollbar-track {
+      background: #11151c;
+      border-radius: 3px;
+    }
+    .shop-grid::-webkit-scrollbar-thumb {
+      background: #3c495c;
+      border-radius: 3px;
+    }
+
+    .shop-item-card {
+      background: linear-gradient(180deg, #1b2029 0%, #0f1217 100%);
+      border: 2px solid #333d4b;
+      border-radius: 12px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+      transition: all 0.18s ease;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+    }
+    .shop-item-card:hover {
+      border-color: #ffd978;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.8), 0 0 10px rgba(229,190,83,0.2);
+    }
+    .shop-item-card.equipped {
+      border-color: #4ade80;
+      background: linear-gradient(180deg, #11281a 0%, #08160e 100%);
+    }
+
+    .shop-item-preview {
+      width: 100%;
+      height: 72px;
+      border-radius: 8px;
+      background: #090e16;
+      border: 1px solid #283342;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .striker-swatch {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      position: relative;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .striker-swatch-knob {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #fff, #94a3b8);
+      border: 1px solid rgba(255,255,255,0.8);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.6);
+    }
+
+    .shop-item-name {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 800;
+      color: #ffd978;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .shop-item-desc {
+      font-size: 11px;
+      color: #94a3b8;
+      line-height: 1.35;
+      flex: 1;
+    }
+
+    .shop-item-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 4px;
+    }
+    .shop-price-tag {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 800;
+      color: #fef08a;
+    }
+
+    .btn-shop-buy {
+      padding: 4px 10px;
+      font-size: 11px;
+      border-radius: 6px;
+    }
+
+    /* Victory Coin Reward Callout Card */
+    .victory-coins-callout {
+      background: linear-gradient(135deg, rgba(234, 179, 8, 0.2) 0%, rgba(202, 138, 4, 0.05) 100%);
+      border: 2px solid #eab308;
+      border-radius: 10px;
+      padding: 10px 16px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 0 15px rgba(234, 179, 8, 0.25);
+    }
+    .victory-coins-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .victory-coins-amount {
+      font-family: var(--font-mono);
+      font-size: 20px;
+      font-weight: 900;
+      color: #fef08a;
+      text-shadow: 0 0 8px rgba(250, 204, 21, 0.7);
+    }
+
+    /* ========================================================
+       DAILY MISSIONS SYSTEM STYLES (PRO SHOP TAB)
+    ======================================================== */
+    .missions-list-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 350px;
+      overflow-y: auto;
+      padding-right: 4px;
+      margin-bottom: 14px;
+    }
+    .missions-list-container::-webkit-scrollbar {
+      width: 6px;
+    }
+    .missions-list-container::-webkit-scrollbar-track {
+      background: #11151c;
+      border-radius: 3px;
+    }
+    .missions-list-container::-webkit-scrollbar-thumb {
+      background: #3c495c;
+      border-radius: 3px;
+    }
+
+    /* Daily Drills Header Banner */
+    .missions-header-banner {
+      background: linear-gradient(135deg, #182232 0%, #0c111a 100%);
+      border: 1.5px solid #2f3e54;
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      box-shadow: inset 0 1px 1px rgba(255,255,255,0.06);
+    }
+    .missions-header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .missions-header-title {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 800;
+      color: #ffd978;
+      letter-spacing: 0.5px;
+    }
+    .missions-header-sub {
+      font-size: 11px;
+      color: #94a3b8;
+    }
+    .missions-reset-countdown {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #cbd5e1;
+      background: #080d14;
+      border: 1px solid #283344;
+      border-radius: 6px;
+      padding: 4px 8px;
+    }
+
+    /* Mission Card */
+    .mission-card {
+      background: linear-gradient(180deg, #18202d 0%, #0d121a 100%);
+      border: 1.5px solid #2d3848;
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: all 0.2s ease;
+      position: relative;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+    .mission-card:hover {
+      border-color: #475569;
+      transform: translateY(-1px);
+    }
+    .mission-card.ready-to-claim {
+      border-color: #eab308;
+      background: linear-gradient(180deg, #242417 0%, #11140e 100%);
+      box-shadow: 0 0 14px rgba(234, 179, 8, 0.25), 0 4px 10px rgba(0,0,0,0.7);
+    }
+    .mission-card.claimed {
+      border-color: #1e3a2b;
+      background: linear-gradient(180deg, #0e1a14 0%, #08100c 100%);
+      opacity: 0.9;
+    }
+
+    /* Mission Icon Medallion */
+    .mission-icon-box {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #2a374a, #111620 80%);
+      border: 1.5px solid #3c4b60;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.6), 0 2px 4px rgba(0,0,0,0.5);
+    }
+    .mission-card.ready-to-claim .mission-icon-box {
+      border-color: #eab308;
+      background: radial-gradient(circle at 35% 35%, #594511, #211905 80%);
+      box-shadow: 0 0 10px rgba(234, 179, 8, 0.4);
+    }
+    .mission-card.claimed .mission-icon-box {
+      border-color: #22c55e;
+      background: radial-gradient(circle at 35% 35%, #144026, #091a10 80%);
+    }
+
+    /* Mission Middle Info */
+    .mission-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      min-width: 0;
+    }
+    .mission-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .mission-title-text {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 800;
+      color: #f1f5f9;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .mission-reward-tag {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 800;
+      color: #fef08a;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      background: rgba(234, 179, 8, 0.12);
+      border: 1px solid rgba(234, 179, 8, 0.3);
+      border-radius: 4px;
+      padding: 1px 6px;
+      flex-shrink: 0;
+    }
+    .mission-desc-text {
+      font-size: 11px;
+      color: #94a3b8;
+      line-height: 1.3;
+    }
+
+    /* Progress Bar */
+    .mission-progress-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 2px;
+    }
+    .mission-progress-track {
+      flex: 1;
+      height: 8px;
+      background: #090e16;
+      border: 1px solid #263344;
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.8);
+    }
+    .mission-progress-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: linear-gradient(90deg, #ca8a04 0%, #eab308 50%, #fef08a 100%);
+      transition: width 0.3s ease;
+      box-shadow: 0 0 6px rgba(234, 179, 8, 0.6);
+    }
+    .mission-card.claimed .mission-progress-fill {
+      background: linear-gradient(90deg, #16a34a 0%, #4ade80 100%);
+      box-shadow: 0 0 6px rgba(34, 197, 94, 0.4);
+    }
+    .mission-progress-numbers {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: #cbd5e1;
+      min-width: 44px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* Action button right side */
+    .mission-action-side {
+      flex-shrink: 0;
+    }
+    .btn-claim-mission {
+      padding: 6px 14px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      animation: pulseClaimGlow 1.8s infinite;
+    }
+    @keyframes pulseClaimGlow {
+      0%, 100% {
+        box-shadow: 0 0 6px rgba(234, 179, 8, 0.4);
+      }
+      50% {
+        box-shadow: 0 0 16px rgba(234, 179, 8, 0.8), 0 0 6px #fff;
+      }
+    }
+    .mission-claimed-status {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 800;
+      color: #4ade80;
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: default;
+    }
+
+    /* Grand Bonus Completion Card */
+    .mission-grand-bonus-card {
+      background: linear-gradient(135deg, rgba(234, 179, 8, 0.22) 0%, rgba(202, 138, 4, 0.08) 100%);
+      border: 2px solid #eab308;
+      border-radius: 10px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: 0 0 16px rgba(234, 179, 8, 0.3);
+    }
+
+    /* Tab & Header Badges */
+    .missions-tab-badge {
+      background: #ef4444;
+      color: #ffffff;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 900;
+      padding: 1px 6px;
+      border-radius: 8px;
+      margin-left: 4px;
+      box-shadow: 0 0 6px #ef4444;
+      animation: pulseDot 1.5s infinite;
+    }
+    .header-notification-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: #ef4444;
+      border-radius: 50%;
+      margin-left: 4px;
+      box-shadow: 0 0 6px #ef4444;
+      animation: pulseDot 1.5s infinite;
+    }
+    @keyframes pulseDot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.25); opacity: 0.8; }
+    }
+
+    /* Floating Mission Completion Notification Toast */
+    .mission-toast-notification {
+      position: absolute;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+      border: 2px solid #eab308;
+      border-radius: 8px;
+      padding: 8px 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #fef08a;
+      font-size: 12px;
+      font-weight: 800;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.8), 0 0 15px rgba(234, 179, 8, 0.4);
+      pointer-events: none;
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 100;
+    }
+    .mission-toast-notification.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
     }
 
     /* Canvas playfield */
@@ -1148,10 +1806,22 @@
           <span class="level-meta-title">TARGET</span>
           <span id="target-score-display" class="level-meta-val">FIRST TO 5</span>
         </div>
+
+        <!-- Coin Vault Header Badge -->
+        <div id="btn-header-coins" class="coins-chassis-badge" title="Coin Vault: Earn 10 coins beating Level 1 and more! Click to open Pro Shop">
+          <div class="coin-icon-spinning">🪙</div>
+          <span id="header-coins-count" class="coins-display-text">0</span>
+        </div>
       </div>
 
       <!-- Quick Action Buttons -->
       <div style="display: flex; gap: 8px; align-items: center;">
+        <button id="btn-shop-trigger" class="skeuo-btn btn-brass btn-sm" title="Pro Shop & Daily Missions: Spend coins on skins or claim mission bounties">
+          🛒 Shop <span id="header-missions-badge" class="header-notification-dot" style="display: none;"></span>
+        </button>
+        <button id="btn-history-trigger" class="skeuo-btn btn-chrome btn-sm" title="View Match History Log">
+          📜 History
+        </button>
         <button id="btn-theme-trigger" class="skeuo-btn btn-brass btn-sm" title="Choose Playground Arena Surface">
           🎨 <span id="header-theme-name">Midnight Ice</span>
         </button>
@@ -1163,6 +1833,12 @@
         </button>
       </div>
     </header>
+
+    <!-- Floating Daily Mission Toast Notification -->
+    <div id="mission-toast-notif" class="mission-toast-notification">
+      <span style="font-size: 16px;">🎯</span>
+      <span id="mission-toast-text">Daily Mission Complete!</span>
+    </div>
 
     <!-- Air Hockey Mahogany Table Frame & Canvas -->
     <div id="main-table-frame" class="table-wood-frame">
@@ -1259,6 +1935,13 @@
         <button id="btn-menu-start" class="skeuo-btn btn-brass" style="width: 100%; padding: 12px;">
           ▶ START GAME
         </button>
+        <button id="btn-menu-shop" class="skeuo-btn btn-brass" style="width: 100%; padding: 12px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+          <span>🛒 PRO SHOP & MISSIONS</span>
+          <span id="menu-missions-badge" style="display: none; background: #ef4444; color: #fff; font-size: 10px; font-weight: 900; padding: 2px 7px; border-radius: 8px;">1 READY</span>
+        </button>
+        <button id="btn-menu-history" class="skeuo-btn btn-chrome" style="width: 100%; padding: 12px;">
+          📜 MATCH HISTORY LOG
+        </button>
         <button id="btn-menu-theme" class="skeuo-btn btn-brass" style="width: 100%; padding: 12px;">
           🎨 CHANGE PLAYGROUND
         </button>
@@ -1275,6 +1958,90 @@
 
       <div style="text-align: center; margin-top: 14px; font-size: 11px; color: #94a3b8;">
         Game developed by Sayon • Native HTML5 Canvas
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Match History Log (Last 10 Games) -->
+  <div id="modal-match-history" class="modal-backdrop">
+    <div class="skeuo-modal" style="max-width: 600px;">
+      <div class="modal-header-ribbon">
+        <h2 class="modal-title">MATCH HISTORY</h2>
+        <p class="modal-desc">Recent performance log (Last 10 games saved locally)</p>
+      </div>
+
+      <!-- Quick Summary Stats -->
+      <div class="history-summary-strip">
+        <div class="history-stat-box">
+          <div id="history-stat-played" class="history-stat-num">0</div>
+          <div class="history-stat-lbl">Matches Logged</div>
+        </div>
+        <div class="history-stat-box">
+          <div id="history-stat-record" class="history-stat-num" style="color: #4ade80;">0W - 0L</div>
+          <div class="history-stat-lbl">Win / Loss</div>
+        </div>
+        <div class="history-stat-box">
+          <div id="history-stat-winrate" class="history-stat-num" style="color: #60a5fa;">0%</div>
+          <div class="history-stat-lbl">Win Rate</div>
+        </div>
+      </div>
+
+      <!-- Scrollable History List -->
+      <div id="history-list-content" class="history-list-container">
+        <!-- Injected via buildMatchHistoryUI() -->
+      </div>
+
+      <div class="modal-actions" style="justify-content: space-between;">
+        <button id="btn-clear-history" class="skeuo-btn btn-crimson btn-sm" title="Clear match history logs">
+          🗑 Clear Log
+        </button>
+        <button id="btn-close-history" class="skeuo-btn btn-brass">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Pro Shop (Spend Coins on Paddle Skins & Perks) -->
+  <div id="modal-pro-shop" class="modal-backdrop">
+    <div class="skeuo-modal" style="max-width: 620px;">
+      <div class="modal-header-ribbon">
+        <h2 class="modal-title">🪙 DISKBALL PRO SHOP</h2>
+        <p class="modal-desc">Spend coins earned from victories to unlock striker skins and power-ups</p>
+      </div>
+
+      <!-- Shop Balance Ribbon -->
+      <div style="display: flex; align-items: center; justify-content: space-between; background: linear-gradient(180deg, #1b2029 0%, #0d1017 100%); border: 1.5px solid #d4a52e; border-radius: 8px; padding: 10px 16px; margin-bottom: 14px;">
+        <div style="font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase;">
+          YOUR VAULT BALANCE:
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div class="coin-icon-spinning" style="width: 24px; height: 24px;">🪙</div>
+          <span id="shop-coins-balance" style="font-family: var(--font-mono); font-size: 20px; font-weight: 900; color: #fef08a;">0 COINS</span>
+        </div>
+      </div>
+
+      <!-- Shop Tabs Navigation -->
+      <div class="shop-tabs-nav">
+        <button id="shop-tab-strikers" class="shop-tab-btn active">STRIKER SKINS</button>
+        <button id="shop-tab-perks" class="shop-tab-btn">PERKS & BOOSTS</button>
+        <button id="shop-tab-missions" class="shop-tab-btn">
+          🎯 MISSIONS <span id="missions-tab-badge" class="missions-tab-badge" style="display: none;">0</span>
+        </button>
+      </div>
+
+      <!-- Shop Items Container -->
+      <div id="shop-items-container" class="shop-grid">
+        <!-- Rendered dynamically via buildShopUI() -->
+      </div>
+
+      <div class="modal-actions" style="justify-content: space-between;">
+        <button id="btn-shop-open-levels" class="skeuo-btn btn-chrome btn-sm">
+          ★ Play For Coins
+        </button>
+        <button id="btn-close-shop" class="skeuo-btn btn-brass">
+          Done
+        </button>
       </div>
     </div>
   </div>
@@ -1342,12 +2109,13 @@
         </div>
         
         <p style="margin-top: 6px;">
-          • Move your red mallet to smash the disk into the opponent's net on the left.
-          <br>• <strong>Level 1:</strong> Wide target, slow opponent.
-          <br>• <strong>Level 2:</strong> Narrow target & faster disk velocity.
-          <br>• <strong>Level 3:</strong> Moving brass center bumpers.
-          <br>• <strong>Level 4:</strong> Dual disk chaos with fast AI!
-          <br>• <strong>Level 5:</strong> Boss Fight with sliding goal & dynamic orbital bumpers!
+          • Move your mallet to smash the disk into the opponent's net on the left.
+          <br>• <strong>Level 1:</strong> Wide target, slow opponent. Reward: <strong>+10 Coins</strong>!
+          <br>• <strong>Level 2:</strong> Narrow target & faster disk velocity. Reward: <strong>+20 Coins</strong>!
+          <br>• <strong>Level 3:</strong> Moving brass center bumpers. Reward: <strong>+30 Coins</strong>!
+          <br>• <strong>Level 4:</strong> Dual disk chaos with fast AI! Reward: <strong>+40 Coins</strong>!
+          <br>• <strong>Level 5:</strong> Boss Fight with sliding goal & dynamic bumpers! Reward: <strong>+50 Coins</strong>!
+          <br>• <strong>Coins:</strong> Use coins in the <strong>Pro Shop</strong> to buy exclusive mallet skins and power perks!
         </p>
       </div>
 
@@ -1389,6 +2157,18 @@
         <p id="victory-sub-text" class="modal-desc">You dominated the arena</p>
       </div>
 
+      <!-- Rewarded Coins Callout -->
+      <div class="victory-coins-callout">
+        <div class="victory-coins-left">
+          <div class="coin-icon-spinning" style="width: 32px; height: 32px; font-size: 16px;">🪙</div>
+          <div>
+            <div style="font-size: 11px; font-weight: 800; color: #facc15; letter-spacing: 0.5px; text-transform: uppercase;">BOUNTY EARNED</div>
+            <div id="victory-coins-desc" style="font-size: 12px; color: #f1f5f9;">Level 1 Cleared: +10 Coins</div>
+          </div>
+        </div>
+        <div id="victory-coins-reward" class="victory-coins-amount">+10 🪙</div>
+      </div>
+
       <div id="victory-stats-container">
         <div class="stat-row">
           <span class="stat-label">Final Score</span>
@@ -1402,9 +2182,16 @@
           <span class="stat-label">High Score</span>
           <span id="victory-high-score" class="stat-val">NEW RECORD!</span>
         </div>
+        <div class="stat-row">
+          <span class="stat-label">Total Coins in Vault</span>
+          <span id="victory-total-coins" class="stat-val" style="color: #fef08a;">10 🪙</span>
+        </div>
       </div>
 
       <div class="modal-actions">
+        <button id="btn-victory-shop" class="skeuo-btn btn-brass" style="background: linear-gradient(180deg, #fde047 0%, #ca8a04 100%);">
+          🛒 PRO SHOP
+        </button>
         <button id="btn-next-level" class="skeuo-btn btn-brass">
           ★ NEXT LEVEL
         </button>
@@ -1623,17 +2410,219 @@
     ======================================================== */
     const STORAGE_KEY = 'diskball_save_sayon_v1';
 
+    /* Level Victory Coin Bounties (Beat Level 1 -> 10 coins, Level 2 -> 20 coins, etc.) */
+    const LEVEL_COIN_REWARDS = {
+      1: 10,
+      2: 20,
+      3: 30,
+      4: 40,
+      5: 50
+    };
+
+    /* Pro Shop Catalog: Striker Skins & Perks */
+    const PRO_SHOP_SKINS = [
+      {
+        id: 'crimson',
+        name: 'Crimson Classic',
+        desc: 'Standard-issue arcade striker with red lacquer finish.',
+        price: 0,
+        color: '#ef4444',
+        rimColor: '#b91c1c',
+        knobInner: '#ffffff',
+        tag: 'DEFAULT'
+      },
+      {
+        id: 'gold_bullion',
+        name: 'Gold Bullion',
+        desc: 'Solid polished 24K brass mallet with gleaming gold specular reflections.',
+        price: 15,
+        color: '#facc15',
+        rimColor: '#a16207',
+        knobInner: '#fef08a',
+        tag: 'LUXURY'
+      },
+      {
+        id: 'cyber_cyan',
+        name: 'Cyber Neon Glow',
+        desc: 'Ultra-bright synthwave cyan mallet with high-energy edge hue.',
+        price: 25,
+        color: '#06b6d4',
+        rimColor: '#0e7490',
+        knobInner: '#a5f3fc',
+        tag: 'NEON'
+      },
+      {
+        id: 'amethyst_royale',
+        name: 'Amethyst Royale',
+        desc: 'Deep imperial purple with beveled violet metallic edges.',
+        price: 40,
+        color: '#a855f7',
+        rimColor: '#6b21a8',
+        knobInner: '#e9d5ff',
+        tag: 'ROYAL'
+      },
+      {
+        id: 'emerald_matrix',
+        name: 'Emerald Matrix',
+        desc: 'Casino velvet jade mallet with lucky tournament emerald rim.',
+        price: 60,
+        color: '#10b981',
+        rimColor: '#047857',
+        knobInner: '#a7f3d0',
+        tag: 'PRO'
+      },
+      {
+        id: 'hyper_phantom',
+        name: 'Hyper Phantom',
+        desc: 'Stealth blackout carbon chassis with blazing ruby heart.',
+        price: 100,
+        color: '#1e293b',
+        rimColor: '#ef4444',
+        knobInner: '#f87171',
+        tag: 'CHAMPION'
+      }
+    ];
+
+    const PRO_SHOP_PERKS = [
+      {
+        id: 'power_grip',
+        name: 'Heavy Mallet Grip',
+        desc: '+15% striker mass and impulse punch when hitting the disk.',
+        price: 30,
+        icon: '⚡',
+        type: 'perk'
+      },
+      {
+        id: 'wide_mallet',
+        name: 'Expanded Paddle',
+        desc: '+12% larger paddle radius to block tight corner shots.',
+        price: 45,
+        icon: '🛡️',
+        type: 'perk'
+      },
+      {
+        id: 'double_bounty',
+        name: 'Bounty Multiplier',
+        desc: 'Earn +5 bonus coins on every level you defeat.',
+        price: 60,
+        icon: '🪙',
+        type: 'perk'
+      }
+    ];
+
+    /* ========================================================
+       DAILY MISSIONS SYSTEM ENGINE & PERSISTENCE
+    ======================================================== */
+    function getTodayDateKey() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function getRemainingTimeUntilMidnight() {
+      const now = new Date();
+      const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
+      const diffMs = Math.max(0, midnight.getTime() - now.getTime());
+      const hours = Math.floor(diffMs / (1000 * 60 * 60));
+      const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+      return { hours, mins };
+    }
+
+    function getFreshDailyMissions(dateKey) {
+      const numericSeed = (dateKey.replace(/-/g, '') * 1) || 20261012;
+      const dayNum = numericSeed % 100;
+
+      // Task 1: Goals
+      const goalTarget = 3 + (dayNum % 3); // 3, 4, or 5 goals
+      const goalReward = goalTarget * 5; // 15, 20, or 25 coins
+
+      // Task 2: Matches played
+      const matchTarget = 2 + (dayNum % 2); // 2 or 3 matches
+      const matchReward = matchTarget * 10; // 20 or 30 coins
+
+      // Task 3: Wins
+      const winTarget = 1 + ((dayNum + 1) % 2); // 1 or 2 wins
+      const winReward = winTarget === 1 ? 25 : 35; // 25 or 35 coins
+
+      return {
+        date: dateKey,
+        allBonusClaimed: false,
+        missions: [
+          {
+            id: `goals_${dateKey}`,
+            key: 'goals',
+            icon: '🎯',
+            title: 'Striker Precision',
+            desc: `Score ${goalTarget} goals against any opponent`,
+            target: goalTarget,
+            current: 0,
+            reward: goalReward,
+            claimed: false
+          },
+          {
+            id: `matches_${dateKey}`,
+            key: 'matches',
+            icon: '🏓',
+            title: 'Arena Contender',
+            desc: `Complete ${matchTarget} full matches in any arena`,
+            target: matchTarget,
+            current: 0,
+            reward: matchReward,
+            claimed: false
+          },
+          {
+            id: `wins_${dateKey}`,
+            key: 'wins',
+            icon: '🏆',
+            title: 'Victory Champion',
+            desc: `Win ${winTarget} match${winTarget > 1 ? 'es' : ''} on any level`,
+            target: winTarget,
+            current: 0,
+            reward: winReward,
+            claimed: false
+          }
+        ]
+      };
+    }
+
     function loadSavedState() {
+      const today = getTodayDateKey();
       const defaultState = {
         unlockedLevel: 1,
         highScores: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
         audio: { volume: 70, muted: false, currentTrackIndex: 0, isPlaying: true },
-        playgroundTheme: 'midnight'
+        playgroundTheme: 'midnight',
+        matchHistory: [],
+        coins: 0,
+        ownedSkins: ['crimson'],
+        equippedSkin: 'crimson',
+        ownedPerks: [],
+        dailyMissions: getFreshDailyMissions(today)
       };
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) {
           const parsed = JSON.parse(raw);
+          if (!Array.isArray(parsed.matchHistory)) {
+            parsed.matchHistory = [];
+          }
+          if (typeof parsed.coins !== 'number') {
+            parsed.coins = 0;
+          }
+          if (!Array.isArray(parsed.ownedSkins)) {
+            parsed.ownedSkins = ['crimson'];
+          }
+          if (!parsed.equippedSkin) {
+            parsed.equippedSkin = 'crimson';
+          }
+          if (!Array.isArray(parsed.ownedPerks)) {
+            parsed.ownedPerks = [];
+          }
+          if (!parsed.dailyMissions || parsed.dailyMissions.date !== today || !Array.isArray(parsed.dailyMissions.missions) || parsed.dailyMissions.missions.length !== 3) {
+            parsed.dailyMissions = getFreshDailyMissions(today);
+          }
           return { ...defaultState, ...parsed };
         }
       } catch (e) {
@@ -1642,11 +2631,141 @@
       return defaultState;
     }
 
+    function ensureDailyMissions(state = appState) {
+      if (!state) return getFreshDailyMissions(getTodayDateKey());
+      const today = getTodayDateKey();
+      if (!state.dailyMissions || state.dailyMissions.date !== today || !Array.isArray(state.dailyMissions.missions) || state.dailyMissions.missions.length !== 3) {
+        state.dailyMissions = getFreshDailyMissions(today);
+        if (state === appState) {
+          saveState(appState);
+        }
+      }
+      return state.dailyMissions;
+    }
+
+    function updateMissionProgress(key, amount = 1) {
+      if (!appState) return;
+      const dm = ensureDailyMissions(appState);
+      let changed = false;
+      let newlyCompletedTitle = null;
+
+      dm.missions.forEach(m => {
+        if (m.key === key && !m.claimed && m.current < m.target) {
+          const prev = m.current;
+          m.current = Math.min(m.target, m.current + amount);
+          if (m.current !== prev) changed = true;
+          if (m.current >= m.target && prev < m.target) {
+            newlyCompletedTitle = m.title;
+          }
+        }
+      });
+
+      if (changed) {
+        saveState(appState);
+        updateMissionsBadge();
+        if (newlyCompletedTitle) {
+          showMissionCompletionToast(newlyCompletedTitle);
+          playUnlockSound();
+        }
+      }
+    }
+
+    function updateMissionsBadge() {
+      if (!appState) return;
+      const dm = ensureDailyMissions(appState);
+      let readyToClaimCount = 0;
+      let allClaimed = true;
+
+      dm.missions.forEach(m => {
+        if (m.current >= m.target && !m.claimed) {
+          readyToClaimCount++;
+        }
+        if (!m.claimed) {
+          allClaimed = false;
+        }
+      });
+
+      if (allClaimed && !dm.allBonusClaimed) {
+        readyToClaimCount++;
+      }
+
+      const headerDot = document.getElementById('header-missions-badge');
+      if (headerDot) {
+        headerDot.style.display = readyToClaimCount > 0 ? 'inline-block' : 'none';
+      }
+
+      const menuBadge = document.getElementById('menu-missions-badge');
+      if (menuBadge) {
+        if (readyToClaimCount > 0) {
+          menuBadge.style.display = 'inline-block';
+          menuBadge.textContent = `${readyToClaimCount} READY`;
+        } else {
+          menuBadge.style.display = 'none';
+        }
+      }
+
+      const tabBadge = document.getElementById('missions-tab-badge');
+      if (tabBadge) {
+        if (readyToClaimCount > 0) {
+          tabBadge.style.display = 'inline-block';
+          tabBadge.textContent = readyToClaimCount;
+        } else {
+          tabBadge.style.display = 'none';
+        }
+      }
+    }
+
+    let toastTimer = null;
+    function showMissionCompletionToast(missionTitle) {
+      const toastEl = document.getElementById('mission-toast-notif');
+      const textEl = document.getElementById('mission-toast-text');
+      if (!toastEl || !textEl) return;
+
+      textEl.textContent = `🎯 Mission Complete: ${missionTitle}! Claim coins in Pro Shop!`;
+      toastEl.classList.add('show');
+
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toastEl.classList.remove('show');
+      }, 3500);
+    }
+
     function saveState(state) {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       } catch (e) {
         console.warn("Storage save error:", e);
+      }
+    }
+
+    function recordMatchHistory(resultData) {
+      if (!Array.isArray(appState.matchHistory)) {
+        appState.matchHistory = [];
+      }
+      // Add newest match to the front
+      appState.matchHistory.unshift(resultData);
+      // Keep only the last 10 games
+      if (appState.matchHistory.length > 10) {
+        appState.matchHistory = appState.matchHistory.slice(0, 10);
+      }
+      saveState(appState);
+    }
+
+    function addCoins(amount) {
+      appState.coins = Math.max(0, (appState.coins || 0) + amount);
+      saveState(appState);
+      updateCoinsDisplay();
+    }
+
+    function updateCoinsDisplay() {
+      const count = appState.coins || 0;
+      const headerCoinsEl = document.getElementById('header-coins-count');
+      if (headerCoinsEl) {
+        headerCoinsEl.textContent = count;
+      }
+      const shopBalanceEl = document.getElementById('shop-coins-balance');
+      if (shopBalanceEl) {
+        shopBalanceEl.textContent = `${count} COINS`;
       }
     }
 
@@ -1799,6 +2918,56 @@
 
         chimeOsc.start(time);
         chimeOsc.stop(time + 0.3);
+      });
+    }
+
+    function playCoinSound() {
+      if (!audioCtx || appState.audio.muted) return;
+      const now = audioCtx.currentTime;
+      // High bright twin coin metallic ping
+      const osc1 = audioCtx.createOscillator();
+      const osc2 = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc1.type = 'sine';
+      osc2.type = 'triangle';
+      osc1.frequency.setValueAtTime(987.77, now); // B5
+      osc1.frequency.setValueAtTime(1318.51, now + 0.08); // E6
+      osc2.frequency.setValueAtTime(1975.53, now + 0.08); // B6
+
+      gain.gain.setValueAtTime(0.35, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(sfxGain);
+
+      osc1.start(now);
+      osc2.start(now + 0.08);
+      osc1.stop(now + 0.35);
+      osc2.stop(now + 0.35);
+    }
+
+    function playUnlockSound() {
+      if (!audioCtx || appState.audio.muted) return;
+      const now = audioCtx.currentTime;
+      const notes = [440, 554.37, 659.25, 880];
+      notes.forEach((freq, idx) => {
+        const osc = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        const t = now + (idx * 0.06);
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, t);
+
+        g.gain.setValueAtTime(0.3, t);
+        g.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
+
+        osc.connect(g);
+        g.connect(sfxGain);
+
+        osc.start(t);
+        osc.stop(t + 0.22);
       });
     }
 
@@ -2063,7 +3232,16 @@
       document.getElementById('target-score-display').textContent = `FIRST TO ${currentConfig.targetScore}`;
       updateScoreboardUI();
 
-      // Reset mallets
+      // Reset and configure mallets based on equipped skins & perks
+      const equippedSkinId = appState.equippedSkin || 'crimson';
+      const skinObj = PRO_SHOP_SKINS.find(s => s.id === equippedSkinId) || PRO_SHOP_SKINS[0];
+      const hasWideMallet = (appState.ownedPerks || []).includes('wide_mallet');
+
+      playerStriker.color = skinObj.color;
+      playerStriker.rimColor = skinObj.rimColor;
+      playerStriker.knobInner = skinObj.knobInner || '#ffffff';
+      playerStriker.radius = hasWideMallet ? 32 : 28; // expanded paddle perk
+
       playerStriker.x = 650;
       playerStriker.y = 250;
       playerStriker.targetX = 650;
@@ -2344,15 +3522,17 @@
 
         // Do not resolve if velocities are separating
         if (velAlongNormal < 0) {
-          const restitution = 1.35;
+          const hasPowerGrip = isPlayer && (appState.ownedPerks || []).includes('power_grip');
+          const restitution = hasPowerGrip ? 1.55 : 1.35;
           const impulse = -(1 + restitution) * velAlongNormal;
 
-          disk.vx += nx * impulse + striker.vx * 0.65;
-          disk.vy += ny * impulse + striker.vy * 0.65;
+          const strikerFactor = hasPowerGrip ? 0.8 : 0.65;
+          disk.vx += nx * impulse + striker.vx * strikerFactor;
+          disk.vy += ny * impulse + striker.vy * strikerFactor;
 
           // Ensure minimum kick speed
           const exitSpeed = Math.hypot(disk.vx, disk.vy);
-          const minKick = 6.5 * currentConfig.diskSpeedMultiplier;
+          const minKick = (hasPowerGrip ? 7.5 : 6.5) * currentConfig.diskSpeedMultiplier;
           if (exitSpeed < minKick) {
             disk.vx = nx * minKick;
             disk.vy = ny * minKick;
@@ -2460,6 +3640,7 @@
 
       if (scoringSide === 'player') {
         playerScore++;
+        updateMissionProgress('goals', 1);
         title.textContent = "GOAL! PLAYER SCORES!";
         title.style.color = "#4ade80";
         sub.textContent = "Unstoppable shot!";
@@ -2495,6 +3676,10 @@
       const mins = String(Math.floor(durationSeconds / 60)).padStart(2, '0');
       const secs = String(durationSeconds % 60).padStart(2, '0');
 
+      // Update Daily Missions for match played and match won
+      updateMissionProgress('matches', 1);
+      updateMissionProgress('wins', 1);
+
       // Calculate score points
       const matchScore = (playerScore * 100) - (aiScore * 30) + Math.max(0, 300 - durationSeconds * 3);
       const prevBest = appState.highScores[currentConfig.level] || 0;
@@ -2509,11 +3694,52 @@
       }
       saveState(appState);
 
+      // Calculate Coins Earned (Level 1: 10 coins, Level 2: 20 coins, Level 3: 30 coins, etc.)
+      const baseCoinBounty = LEVEL_COIN_REWARDS[currentConfig.level] || (currentConfig.level * 10);
+      const hasDoubleBounty = (appState.ownedPerks || []).includes('double_bounty');
+      const earnedCoins = hasDoubleBounty ? (baseCoinBounty + 5) : baseCoinBounty;
+
+      // Add coins to persistent balance
+      addCoins(earnedCoins);
+      setTimeout(() => {
+        playCoinSound();
+      }, 500);
+
+      // Record match in history (Last 10 games)
+      recordMatchHistory({
+        id: Date.now(),
+        level: currentConfig.level,
+        levelName: currentConfig.name,
+        result: 'win',
+        playerScore: playerScore,
+        aiScore: aiScore,
+        scorePoints: matchScore,
+        coinsEarned: earnedCoins,
+        duration: `${mins}:${secs}`,
+        arenaTheme: appState.playgroundTheme || 'midnight',
+        timestamp: Date.now()
+      });
+
       // Populate Victory Modal
       document.getElementById('victory-final-score').textContent = `${playerScore} - ${aiScore}`;
       document.getElementById('victory-match-time').textContent = `${mins}:${secs}`;
       document.getElementById('victory-high-score').textContent = isNewRecord ? `NEW RECORD: ${matchScore}` : `Record: ${prevBest}`;
       document.getElementById('victory-sub-text').textContent = currentConfig.level === 5 ? "You defeated The Sovereign Boss!" : `Level ${currentConfig.level} cleared!`;
+
+      // Update Victory Coin Callout
+      const victoryCoinsRewardEl = document.getElementById('victory-coins-reward');
+      const victoryCoinsDescEl = document.getElementById('victory-coins-desc');
+      const victoryTotalCoinsEl = document.getElementById('victory-total-coins');
+
+      if (victoryCoinsRewardEl) {
+        victoryCoinsRewardEl.textContent = `+${earnedCoins} 🪙`;
+      }
+      if (victoryCoinsDescEl) {
+        victoryCoinsDescEl.textContent = `Level ${currentConfig.level} Victory Bounty: +${earnedCoins} Coins`;
+      }
+      if (victoryTotalCoinsEl) {
+        victoryTotalCoinsEl.textContent = `${appState.coins || 0} 🪙`;
+      }
 
       // Next level button availability
       const nextBtn = document.getElementById('btn-next-level');
@@ -2528,6 +3754,27 @@
 
     function handleDefeat() {
       isMatchActive = false;
+      const durationSeconds = Math.floor((Date.now() - matchStartTime) / 1000);
+      const mins = String(Math.floor(durationSeconds / 60)).padStart(2, '0');
+      const secs = String(durationSeconds % 60).padStart(2, '0');
+
+      // Update Daily Missions for match played
+      updateMissionProgress('matches', 1);
+
+      // Record match in history (Last 10 games)
+      recordMatchHistory({
+        id: Date.now(),
+        level: currentConfig.level,
+        levelName: currentConfig.name,
+        result: 'loss',
+        playerScore: playerScore,
+        aiScore: aiScore,
+        scorePoints: 0,
+        duration: `${mins}:${secs}`,
+        arenaTheme: appState.playgroundTheme || 'midnight',
+        timestamp: Date.now()
+      });
+
       document.getElementById('defeat-final-score').textContent = `${playerScore} - ${aiScore}`;
       openModal('modal-defeat');
     }
@@ -3345,6 +4592,353 @@
     }
 
     /* ========================================================
+       MATCH HISTORY LOG (LAST 10 GAMES)
+    ======================================================== */
+    function buildMatchHistoryUI() {
+      const container = document.getElementById('history-list-content');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const history = Array.isArray(appState.matchHistory) ? appState.matchHistory : [];
+
+      // Calculate Summary Statistics
+      const totalPlayed = history.length;
+      let wins = 0;
+      let losses = 0;
+
+      history.forEach(match => {
+        if (match.result === 'win') {
+          wins++;
+        } else {
+          losses++;
+        }
+      });
+
+      const winRate = totalPlayed > 0 ? Math.round((wins / totalPlayed) * 100) : 0;
+
+      const statPlayedEl = document.getElementById('history-stat-played');
+      const statRecordEl = document.getElementById('history-stat-record');
+      const statWinRateEl = document.getElementById('history-stat-winrate');
+
+      if (statPlayedEl) statPlayedEl.textContent = totalPlayed;
+      if (statRecordEl) statRecordEl.textContent = `${wins}W - ${losses}L`;
+      if (statWinRateEl) statWinRateEl.textContent = `${winRate}%`;
+
+      if (totalPlayed === 0) {
+        const emptyDiv = document.createElement('div');
+        emptyDiv.className = 'history-empty-state';
+        emptyDiv.innerHTML = `
+          <div style="font-size: 28px; margin-bottom: 8px;">🎮</div>
+          <div style="font-weight: 800; color: #f1f5f9; margin-bottom: 4px;">NO MATCHES RECORDED YET</div>
+          <div>Play a game in any arena to start recording your score and level history!</div>
+        `;
+        container.appendChild(emptyDiv);
+        return;
+      }
+
+      history.forEach((m, idx) => {
+        const isWin = m.result === 'win';
+        const row = document.createElement('div');
+        row.className = `history-row ${isWin ? 'win' : 'loss'}`;
+
+        const dateStr = m.timestamp 
+          ? new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          : `Match #${totalPlayed - idx}`;
+
+        const arenaTag = m.arenaTheme 
+          ? m.arenaTheme.charAt(0).toUpperCase() + m.arenaTheme.slice(1) 
+          : 'Standard';
+
+        row.innerHTML = `
+          <div class="history-badge ${isWin ? 'win' : 'loss'}">
+            ${isWin ? 'VICTORY' : 'DEFEAT'}
+          </div>
+
+          <div class="history-details">
+            <div class="history-level-title">
+              <span>Level ${m.level}: ${m.levelName || 'Arena'}</span>
+              <span style="font-size: 10px; color: #ffd978; background: rgba(229,190,83,0.15); padding: 1px 6px; border-radius: 4px; border: 1px solid rgba(229,190,83,0.3); font-family: var(--font-mono);">
+                ${arenaTag}
+              </span>
+            </div>
+            <div class="history-meta-sub">
+              <span>⏱ ${m.duration || '00:30'}</span>
+              <span>•</span>
+              <span>🕒 ${dateStr}</span>
+              ${m.scorePoints ? `<span>•</span><span style="color: #60a5fa;">pts: ${m.scorePoints}</span>` : ''}
+            </div>
+          </div>
+
+          <div class="history-score-display" title="Player vs AI Score">
+            <span class="player-pts">${m.playerScore}</span>
+            <span class="divider">-</span>
+            <span class="ai-pts">${m.aiScore}</span>
+          </div>
+        `;
+
+        container.appendChild(row);
+      });
+    }
+
+    /* ========================================================
+       PRO SHOP (COINS SYSTEM & STORE UI)
+    ======================================================== */
+    let currentShopTab = 'strikers'; // 'strikers' | 'perks' | 'missions'
+
+    function buildShopUI() {
+      const container = document.getElementById('shop-items-container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      updateCoinsDisplay();
+      updateMissionsBadge();
+
+      if (currentShopTab === 'missions') {
+        container.className = 'missions-list-container';
+        const dm = ensureDailyMissions(appState);
+        const { hours, mins } = getRemainingTimeUntilMidnight();
+
+        const completedCount = dm.missions.filter(m => m.current >= m.target).length;
+        const claimedCount = dm.missions.filter(m => m.claimed).length;
+        const allClaimed = claimedCount === 3;
+
+        // 1. Top Header Banner
+        const banner = document.createElement('div');
+        banner.className = 'missions-header-banner';
+        banner.innerHTML = `
+          <div class="missions-header-left">
+            <div class="missions-header-title">🎯 DAILY ARCADE DRILLS</div>
+            <div class="missions-header-sub">Complete today's 3 tasks for bonus coins · <strong style="color: #ffd978;">${completedCount} / 3 Tasks Finished</strong></div>
+          </div>
+          <div class="missions-reset-countdown" title="Daily missions refresh at midnight">
+            <span>⏳ Resets in:</span>
+            <strong style="color: #fef08a;">${hours}h ${mins}m</strong>
+          </div>
+        `;
+        container.appendChild(banner);
+
+        // 2. Mission Cards
+        dm.missions.forEach(m => {
+          const isComplete = m.current >= m.target;
+          const isClaimed = !!m.claimed;
+          const percent = Math.min(100, Math.round((m.current / m.target) * 100));
+
+          const card = document.createElement('div');
+          card.className = `mission-card ${isClaimed ? 'claimed' : (isComplete ? 'ready-to-claim' : '')}`;
+
+          card.innerHTML = `
+            <div class="mission-icon-box" title="${m.title}">
+              ${isClaimed ? '✓' : m.icon}
+            </div>
+            <div class="mission-info">
+              <div class="mission-title-row">
+                <span class="mission-title-text">${m.title}</span>
+                <span class="mission-reward-tag">🪙 +${m.reward}</span>
+              </div>
+              <div class="mission-desc-text">${m.desc}</div>
+              <div class="mission-progress-wrap">
+                <div class="mission-progress-track">
+                  <div class="mission-progress-fill" style="width: ${percent}%;"></div>
+                </div>
+                <div class="mission-progress-numbers">${m.current}/${m.target}</div>
+              </div>
+            </div>
+            <div class="mission-action-side">
+              ${
+                isClaimed
+                  ? `<div class="mission-claimed-status">✓ CLAIMED</div>`
+                  : isComplete
+                    ? `<button class="skeuo-btn btn-brass btn-claim-mission" data-mission-id="${m.id}">CLAIM +${m.reward} 🪙</button>`
+                    : `<button class="skeuo-btn btn-chrome btn-sm" disabled style="opacity: 0.6; cursor: default; font-size: 11px;">IN PROGRESS</button>`
+              }
+            </div>
+          `;
+
+          container.appendChild(card);
+        });
+
+        // 3. Grand Daily Mastery Bonus Card
+        if (allClaimed) {
+          const grandBonus = document.createElement('div');
+          grandBonus.className = 'mission-grand-bonus-card';
+          grandBonus.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="font-size: 26px;">👑</div>
+              <div>
+                <div style="font-family: var(--font-display); font-size: 13px; font-weight: 800; color: #fef08a;">
+                  DAILY SWEEP COMPLETED!
+                </div>
+                <div style="font-size: 11px; color: #cbd5e1;">
+                  ${dm.allBonusClaimed ? 'All 3 missions & grand bounty claimed! New drills unlock at midnight.' : 'You completed all 3 daily tasks! Claim your grand sweep reward.'}
+                </div>
+              </div>
+            </div>
+            <div>
+              ${
+                dm.allBonusClaimed
+                  ? `<span class="mission-claimed-status">✓ MASTERED</span>`
+                  : `<button id="btn-claim-grand-bonus" class="skeuo-btn btn-brass btn-claim-mission">CLAIM +30 🪙</button>`
+              }
+            </div>
+          `;
+          container.appendChild(grandBonus);
+        }
+
+        // Attach Claim Handlers
+        container.querySelectorAll('.btn-claim-mission').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const mId = btn.getAttribute('data-mission-id');
+            const targetM = dm.missions.find(m => m.id === mId);
+            if (targetM && targetM.current >= targetM.target && !targetM.claimed) {
+              targetM.claimed = true;
+              addCoins(targetM.reward);
+              playCoinSound();
+              playUnlockSound();
+              saveState(appState);
+              updateMissionsBadge();
+              buildShopUI();
+            }
+          });
+        });
+
+        const btnGrandBonus = container.querySelector('#btn-claim-grand-bonus');
+        if (btnGrandBonus) {
+          btnGrandBonus.addEventListener('click', () => {
+            if (!dm.allBonusClaimed) {
+              dm.allBonusClaimed = true;
+              addCoins(30);
+              playCoinSound();
+              playUnlockSound();
+              saveState(appState);
+              updateMissionsBadge();
+              buildShopUI();
+            }
+          });
+        }
+        return;
+      }
+
+      // Default Strikers & Perks Views
+      container.className = 'shop-grid';
+
+      if (currentShopTab === 'strikers') {
+        PRO_SHOP_SKINS.forEach(skin => {
+          const isOwned = (appState.ownedSkins || ['crimson']).includes(skin.id);
+          const isEquipped = (appState.equippedSkin || 'crimson') === skin.id;
+          const canAfford = (appState.coins || 0) >= skin.price;
+
+          const card = document.createElement('div');
+          card.className = `shop-item-card ${isEquipped ? 'equipped' : ''}`;
+
+          card.innerHTML = `
+            <div class="shop-item-preview">
+              <div class="striker-swatch" style="background: radial-gradient(circle at 35% 35%, #fff 0%, ${skin.color} 30%, ${skin.rimColor} 85%, #111827 100%);">
+                <div class="striker-swatch-knob" style="background: radial-gradient(circle at 35% 35%, #fff, ${skin.knobInner || '#94a3b8'});"></div>
+              </div>
+              <span class="theme-card-tag" style="top: 6px; right: 6px;">${skin.tag}</span>
+            </div>
+            <div class="shop-item-name">
+              <span>${skin.name}</span>
+            </div>
+            <p class="shop-item-desc">${skin.desc}</p>
+            <div class="shop-item-footer">
+              <div class="shop-price-tag">
+                ${skin.price === 0 ? '<span style="color: #94a3b8; font-size: 11px;">FREE</span>' : `🪙 ${skin.price}`}
+              </div>
+              <div>
+                ${
+                  isEquipped 
+                    ? '<button class="skeuo-btn btn-sm" style="background: #22c55e; color: #052e16; font-size: 11px; padding: 4px 10px; cursor: default;">✓ EQUIPPED</button>'
+                    : isOwned 
+                      ? `<button class="skeuo-btn btn-chrome btn-shop-buy" data-action="equip" data-id="${skin.id}">EQUIP</button>`
+                      : `<button class="skeuo-btn btn-brass btn-shop-buy ${!canAfford ? 'opacity-50' : ''}" data-action="buy-skin" data-id="${skin.id}" ${!canAfford ? 'disabled' : ''}>BUY</button>`
+                }
+              </div>
+            </div>
+          `;
+
+          container.appendChild(card);
+        });
+      } else {
+        // Perks Tab
+        PRO_SHOP_PERKS.forEach(perk => {
+          const isOwned = (appState.ownedPerks || []).includes(perk.id);
+          const canAfford = (appState.coins || 0) >= perk.price;
+
+          const card = document.createElement('div');
+          card.className = `shop-item-card ${isOwned ? 'equipped' : ''}`;
+
+          card.innerHTML = `
+            <div class="shop-item-preview" style="background: radial-gradient(circle, #1a2332 0%, #0d121a 100%);">
+              <div style="font-size: 34px;">${perk.icon}</div>
+              <span class="theme-card-tag" style="top: 6px; right: 6px;">PERK</span>
+            </div>
+            <div class="shop-item-name">
+              <span>${perk.name}</span>
+            </div>
+            <p class="shop-item-desc">${perk.desc}</p>
+            <div class="shop-item-footer">
+              <div class="shop-price-tag">
+                🪙 ${perk.price}
+              </div>
+              <div>
+                ${
+                  isOwned 
+                    ? '<button class="skeuo-btn btn-sm" style="background: #22c55e; color: #052e16; font-size: 11px; padding: 4px 10px; cursor: default;">✓ ACTIVE</button>'
+                    : `<button class="skeuo-btn btn-brass btn-shop-buy ${!canAfford ? 'opacity-50' : ''}" data-action="buy-perk" data-id="${perk.id}" ${!canAfford ? 'disabled' : ''}>BUY</button>`
+                }
+              </div>
+            </div>
+          `;
+
+          container.appendChild(card);
+        });
+      }
+
+      // Attach click handlers to buy/equip buttons
+      container.querySelectorAll('.btn-shop-buy').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const action = btn.getAttribute('data-action');
+          const id = btn.getAttribute('data-id');
+
+          if (action === 'equip') {
+            appState.equippedSkin = id;
+            saveState(appState);
+            playClickSound();
+            buildShopUI();
+            resetEntitiesForLevel(currentLevelIndex);
+          } else if (action === 'buy-skin') {
+            const skin = PRO_SHOP_SKINS.find(s => s.id === id);
+            if (skin && (appState.coins || 0) >= skin.price) {
+              appState.coins -= skin.price;
+              if (!appState.ownedSkins.includes(skin.id)) {
+                appState.ownedSkins.push(skin.id);
+              }
+              appState.equippedSkin = skin.id;
+              saveState(appState);
+              playUnlockSound();
+              buildShopUI();
+              resetEntitiesForLevel(currentLevelIndex);
+            }
+          } else if (action === 'buy-perk') {
+            const perk = PRO_SHOP_PERKS.find(p => p.id === id);
+            if (perk && (appState.coins || 0) >= perk.price) {
+              appState.coins -= perk.price;
+              if (!appState.ownedPerks) appState.ownedPerks = [];
+              if (!appState.ownedPerks.includes(perk.id)) {
+                appState.ownedPerks.push(perk.id);
+              }
+              saveState(appState);
+              playUnlockSound();
+              buildShopUI();
+              resetEntitiesForLevel(currentLevelIndex);
+            }
+          }
+        });
+      });
+    }
+
+    /* ========================================================
        MODAL SYSTEM
     ======================================================== */
     function openModal(id) {
@@ -3547,12 +5141,146 @@
       openModal('modal-main-menu');
     });
 
+    // Match History Modal Triggers & Actions
+    const btnHistoryTrigger = document.getElementById('btn-history-trigger');
+    if (btnHistoryTrigger) {
+      btnHistoryTrigger.addEventListener('click', () => {
+        initAudio();
+        playClickSound();
+        buildMatchHistoryUI();
+        openModal('modal-match-history');
+      });
+    }
+
+    const btnMenuHistory = document.getElementById('btn-menu-history');
+    if (btnMenuHistory) {
+      btnMenuHistory.addEventListener('click', () => {
+        playClickSound();
+        buildMatchHistoryUI();
+        openModal('modal-match-history');
+      });
+    }
+
+    const btnCloseHistory = document.getElementById('btn-close-history');
+    if (btnCloseHistory) {
+      btnCloseHistory.addEventListener('click', () => {
+        playClickSound();
+        closeAllModals();
+      });
+    }
+
+    const btnClearHistory = document.getElementById('btn-clear-history');
+    if (btnClearHistory) {
+      btnClearHistory.addEventListener('click', () => {
+        playClickSound();
+        appState.matchHistory = [];
+        saveState(appState);
+        buildMatchHistoryUI();
+      });
+    }
+
+    // Pro Shop & Coin Vault Triggers & Actions
+    const btnHeaderCoins = document.getElementById('btn-header-coins');
+    if (btnHeaderCoins) {
+      btnHeaderCoins.addEventListener('click', () => {
+        initAudio();
+        playClickSound();
+        buildShopUI();
+        openModal('modal-pro-shop');
+      });
+    }
+
+    const btnShopTrigger = document.getElementById('btn-shop-trigger');
+    if (btnShopTrigger) {
+      btnShopTrigger.addEventListener('click', () => {
+        initAudio();
+        playClickSound();
+        buildShopUI();
+        openModal('modal-pro-shop');
+      });
+    }
+
+    const btnMenuShop = document.getElementById('btn-menu-shop');
+    if (btnMenuShop) {
+      btnMenuShop.addEventListener('click', () => {
+        playClickSound();
+        buildShopUI();
+        openModal('modal-pro-shop');
+      });
+    }
+
+    const btnCloseShop = document.getElementById('btn-close-shop');
+    if (btnCloseShop) {
+      btnCloseShop.addEventListener('click', () => {
+        playClickSound();
+        closeAllModals();
+      });
+    }
+
+    const btnShopOpenLevels = document.getElementById('btn-shop-open-levels');
+    if (btnShopOpenLevels) {
+      btnShopOpenLevels.addEventListener('click', () => {
+        playClickSound();
+        buildLevelSelectGrid();
+        openModal('modal-level-select');
+      });
+    }
+
+    const btnVictoryShop = document.getElementById('btn-victory-shop');
+    if (btnVictoryShop) {
+      btnVictoryShop.addEventListener('click', () => {
+        playClickSound();
+        buildShopUI();
+        openModal('modal-pro-shop');
+      });
+    }
+
+    // Shop Tabs
+    const shopTabStrikers = document.getElementById('shop-tab-strikers');
+    const shopTabPerks = document.getElementById('shop-tab-perks');
+    const shopTabMissions = document.getElementById('shop-tab-missions');
+
+    function setShopTab(tabKey) {
+      currentShopTab = tabKey;
+      if (shopTabStrikers) shopTabStrikers.classList.toggle('active', tabKey === 'strikers');
+      if (shopTabPerks) shopTabPerks.classList.toggle('active', tabKey === 'perks');
+      if (shopTabMissions) shopTabMissions.classList.toggle('active', tabKey === 'missions');
+      buildShopUI();
+    }
+
+    if (shopTabStrikers) {
+      shopTabStrikers.addEventListener('click', () => {
+        playClickSound();
+        setShopTab('strikers');
+      });
+    }
+    if (shopTabPerks) {
+      shopTabPerks.addEventListener('click', () => {
+        playClickSound();
+        setShopTab('perks');
+      });
+    }
+    if (shopTabMissions) {
+      shopTabMissions.addEventListener('click', () => {
+        playClickSound();
+        setShopTab('missions');
+      });
+    }
+
     // Reset Progress Modal Buttons
     document.getElementById('btn-confirm-reset').addEventListener('click', () => {
       playClickSound();
       appState.unlockedLevel = 1;
       appState.highScores = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+      appState.matchHistory = [];
+      appState.coins = 0;
+      appState.ownedSkins = ['crimson'];
+      appState.equippedSkin = 'crimson';
+      appState.ownedPerks = [];
+      appState.dailyMissions = getFreshDailyMissions(getTodayDateKey());
       saveState(appState);
+      updateCoinsDisplay();
+      updateMissionsBadge();
       closeAllModals();
       resetEntitiesForLevel(0);
     });
@@ -3618,9 +5346,12 @@
       saveState(appState);
     });
 
-    // Initialize Playground Theme and UI
+    // Initialize Playground Theme, Coins, Daily Missions, and UI
     buildThemeGrid();
     setPlaygroundTheme(appState.playgroundTheme || 'midnight', false);
+    ensureDailyMissions(appState);
+    updateCoinsDisplay();
+    updateMissionsBadge();
 
     // Start game loop
     resetEntitiesForLevel(0);
